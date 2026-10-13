@@ -89,3 +89,59 @@
   color: var(--texto-apagado);
   font-style: italic;
 }
+
+.relatorio-periodo {
+  color: var(--texto-medio);
+  font-size: 1rem;
+  margin-left: 8px;
+}
+
+.espacador {
+  flex: 1;
+}
+
+.relatorio-header {
+  flex-wrap: wrap;
+}
+
+/* Impressão A4: fundo branco, letras pretas, sem botões */
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+@media print {
+  :host,
+  :host ::ng-deep * {
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  :host ::ng-deep .nao-imprimir,
+  :host ::ng-deep .relatorio-header button {
+    display: none !important;
+  }
+
+  :host ::ng-deep .relatorio-container {
+    padding: 0;
+    max-width: none;
+  }
+
+  :host ::ng-deep .relatorio-tabela-wrapper {
+    overflow: visible;
+  }
+
+  :host ::ng-deep th,
+  :host ::ng-deep td {
+    border-bottom: 1px solid #000 !important;
+  }
+
+  :host ::ng-deep tr {
+    break-inside: avoid;
+  }
+
+  :host ::ng-deep .rodape-totais td {
+    border-top: 2px solid #000 !important;
+  }
+}

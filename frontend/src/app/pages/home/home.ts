@@ -4,12 +4,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
-import { TemaService } from '../../services/tema.service';
+import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, TemaToggle],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -17,7 +17,7 @@ export class Home {
   nomeUsuario: string = '';
   isAdmin: boolean = false;
 
-  constructor(private router: Router, private auth: AuthService, protected tema: TemaService) {
+  constructor(private router: Router, private auth: AuthService) {
     const usuario = this.auth.getUsuarioLogado();
     this.nomeUsuario = usuario?.pessoa?.nome ?? usuario?.usuarioLogin ?? '';
     this.isAdmin = this.auth.isAdmin();

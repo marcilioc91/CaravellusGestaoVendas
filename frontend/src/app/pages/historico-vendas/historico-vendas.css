@@ -9,6 +9,11 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 12px;
+}
+
+.periodo-texto {
+  color: var(--texto-medio);
 }
 
 .grupo-panel {

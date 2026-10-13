@@ -75,7 +75,7 @@ export class Ativacao implements OnInit {
     campo.value = ''; // permite escolher o mesmo arquivo de novo depois de um erro
     if (!arquivo || this.enviando) return;
     if (arquivo.size > 64 * 1024) {
-      this.erro = 'Este arquivo não é um arquivo de licença do Porto Cabral.';
+      this.erro = 'Este arquivo não é um arquivo de licença do Caravellus.';
       this.cdr.detectChanges();
       return;
     }

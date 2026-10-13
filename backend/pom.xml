@@ -8,7 +8,7 @@
 		<version>4.0.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.sistemaportocabral</groupId>
+	<groupId>com.caravellus</groupId>
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>

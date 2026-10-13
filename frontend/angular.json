@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "porto-cabral-frontend": {
+    "caravellus-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -71,10 +71,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "porto-cabral-frontend:build:production"
+              "buildTarget": "caravellus-frontend:build:production"
             },
             "development": {
-              "buildTarget": "porto-cabral-frontend:build:development"
+              "buildTarget": "caravellus-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"

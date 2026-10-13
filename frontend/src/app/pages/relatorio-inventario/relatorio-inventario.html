@@ -8,22 +8,36 @@
       <mat-icon>bar_chart</mat-icon>
       Relatório de Inventário
     </h2>
+    <span class="relatorio-periodo">{{ periodoTexto }}</span>
+    <span class="espacador"></span>
+    <button mat-stroked-button class="nao-imprimir" (click)="abrirContexto()">
+      <mat-icon>date_range</mat-icon>
+      CONTEXTO
+    </button>
+    <button mat-stroked-button class="nao-imprimir" [disabled]="!itens.length" (click)="exportarPdf()">
+      <mat-icon>picture_as_pdf</mat-icon>
+      Exportar PDF
+    </button>
+    <button mat-stroked-button class="nao-imprimir" [disabled]="!itens.length" (click)="imprimir()">
+      <mat-icon>print</mat-icon>
+      Imprimir A4
+    </button>
   </div>
 
-  @if (carregando) {
+  @if (carregando && periodo) {
   <div class="relatorio-loading">
     <mat-spinner diameter="48"></mat-spinner>
     <p>Carregando dados...</p>
   </div>
   }
 
-  @if (!carregando) {
+  @if (!carregando && periodo) {
   <ng-container>
 
     @if (itens.length === 0) {
     <div class="relatorio-vazio">
       <mat-icon>inbox</mat-icon>
-      <p>Nenhuma venda registrada.</p>
+      <p>Nenhuma venda registrada no período.</p>
     </div>
     }
 

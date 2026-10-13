@@ -12,11 +12,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { VendaResposta } from '../../models/venda';
 import { VendaService } from '../../services/venda.service';
 import { ProdutoService } from '../../services/produto.service';
+import { Periodo, PeriodoService } from '../../services/periodo.service';
+import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
 
 interface GrupoCliente {
   clienteId: number;
@@ -140,20 +142,16 @@ export class HistoricoVendas implements OnInit {
   carregando = true;
   colunasItens = ['produto', 'quantidade', 'precoUnitario', 'subtotal'];
 
-  filtroMes = 0;
+  periodo: Periodo | null = null;
   filtroAno = 0;
   filtroStatus = '';
   filtroCliente = '';
 
-  readonly meses = [
-    { valor: 0, label: 'Todos os meses' },
-    { valor: 1, label: 'Janeiro' }, { valor: 2, label: 'Fevereiro' },
-    { valor: 3, label: 'Março' }, { valor: 4, label: 'Abril' },
-    { valor: 5, label: 'Maio' }, { valor: 6, label: 'Junho' },
-    { valor: 7, label: 'Julho' }, { valor: 8, label: 'Agosto' },
-    { valor: 9, label: 'Setembro' }, { valor: 10, label: 'Outubro' },
-    { valor: 11, label: 'Novembro' }, { valor: 12, label: 'Dezembro' },
-  ];
+  get periodoTexto(): string {
+    return this.periodo
+      ? `${PeriodoService.formatar(this.periodo.inicio)} a ${PeriodoService.formatar(this.periodo.fim)}`
+      : '';
+  }
 
   get anos(): { valor: number; label: string }[] {
     const set = new Set<number>();
@@ -186,12 +184,8 @@ export class HistoricoVendas implements OnInit {
       .map(grupo => {
         let vendas = grupo.vendas;
 
-        if (this.filtroMes || this.filtroAno) {
-          vendas = vendas.filter(v => {
-            const d = new Date(v.data_venda);
-            return (!this.filtroMes || d.getMonth() + 1 === this.filtroMes) &&
-              (!this.filtroAno || d.getFullYear() === this.filtroAno);
-          });
+        if (this.filtroAno) {
+          vendas = vendas.filter(v => new Date(v.data_venda).getFullYear() === this.filtroAno);
         }
 
         if (!vendas.length) return null;
@@ -225,7 +219,6 @@ export class HistoricoVendas implements OnInit {
   }
 
   limparFiltros() {
-    this.filtroMes = 0;
     this.filtroAno = 0;
     this.filtroStatus = '';
     this.filtroCliente = '';
@@ -235,16 +228,40 @@ export class HistoricoVendas implements OnInit {
     private vendaService: VendaService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private periodoService: PeriodoService,
+    private router: Router
   ) { }
 
   ngOnInit() {
-    this.carregar();
+    this.abrirContexto(true);
+  }
+
+  /** Tela de contexto: pede o periodo antes de listar. Na abertura, cancelar volta para a tela inicial. */
+  abrirContexto(abertura = false) {
+    this.periodoService.obter('historico').subscribe(salvo => {
+      const ref = this.dialog.open(PeriodoDialog, {
+        width: '520px',
+        disableClose: true,
+        data: { titulo: 'Contexto do histórico de vendas', periodo: this.periodo ?? salvo },
+      });
+      ref.afterClosed().subscribe(escolhido => {
+        if (!escolhido) {
+          if (abertura) this.router.navigate(['/home']);
+          return;
+        }
+        this.periodo = escolhido;
+        this.periodoService.salvar('historico', escolhido).subscribe();
+        this.carregar();
+      });
+    });
   }
 
   carregar() {
+    if (!this.periodo) return;
     this.carregando = true;
-    this.vendaService.listarTodas().subscribe({
+    this.cdr.detectChanges();
+    this.vendaService.listarTodas(this.periodo.inicio, this.periodo.fim).subscribe({
       next: vendas => {
         this.grupos = this.agruparPorCliente(vendas);
         this.carregando = false;

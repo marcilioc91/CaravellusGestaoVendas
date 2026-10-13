@@ -1,0 +1,10 @@
+<!-- Chave deslizante do tema: sol (claro) / lua (escuro) -->
+<button type="button" class="tema-toggle" role="switch" [class.escuro]="tema.escuro()"
+  [attr.aria-checked]="tema.escuro()" aria-label="Tema escuro" (click)="tema.alternar()"
+  [title]="tema.escuro() ? 'Usar tema claro' : 'Usar tema escuro'">
+  <mat-icon class="tema-toggle-trilho sol" aria-hidden="true">light_mode</mat-icon>
+  <mat-icon class="tema-toggle-trilho lua" aria-hidden="true">dark_mode</mat-icon>
+  <span class="tema-toggle-botao" aria-hidden="true">
+    <mat-icon>{{ tema.escuro() ? 'dark_mode' : 'light_mode' }}</mat-icon>
+  </span>
+</button>

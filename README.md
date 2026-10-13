@@ -1,4 +1,4 @@
-# Sistema Porto Cabral — Cantina
+# Caravellus - Gestão de Vendas
 
 Sistema web e desktop para gerenciamento de vendas de cantina, com controle de clientes, produtos, usuários, auditoria e relatórios.
 
@@ -52,7 +52,7 @@ sistema-porto-cabral/
 ### Backend
 
 ```
-src/main/java/com/sistemaportocabral/backend/
+src/main/java/com/caravellus/backend/
 ├── config/
 │   └── SecurityConfig.java           # BCrypt + CORS
 ├── controller/
@@ -95,7 +95,7 @@ src/main/java/com/sistemaportocabral/backend/
 │   └── VendaService.java
 ├── util/
 │   └── ValidacaoUtil.java            # Validação de CPF e email
-└── SistemaPortoCabralApplication.java
+└── CaravellusApplication.java
 ```
 
 ### Frontend

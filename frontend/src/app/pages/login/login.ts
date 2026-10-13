@@ -14,6 +14,7 @@ import { RecuperarSenhaDialog } from './recuperar-senha-dialog';
 import { TrocarSenhaDialog, TrocarSenhaDados } from './trocar-senha-dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,8 @@ import { HttpErrorResponse } from '@angular/common/http';
     MatButtonModule,
     MatDividerModule,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    TemaToggle
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',

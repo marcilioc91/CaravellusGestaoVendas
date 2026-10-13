@@ -1,0 +1,62 @@
+package com.caravellus.backend.controller;
+
+import com.caravellus.backend.entity.Categoria;
+import com.caravellus.backend.service.CategoriaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/categorias")
+public class CategoriaController {
+
+    @Autowired
+    private CategoriaService service;
+
+    @GetMapping
+    public List<Categoria> listar() {
+        return service.listar();
+    }
+
+    @PostMapping
+    public ResponseEntity<?> salvar(
+            @RequestBody Categoria categoria,
+            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
+            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+        try {
+            categoria.setId(null);
+            return ResponseEntity.status(201).body(service.salvar(categoria, usuarioId, usuarioNome));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizar(
+            @PathVariable Long id,
+            @RequestBody Categoria categoria,
+            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
+            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+        try {
+            categoria.setId(id);
+            return ResponseEntity.ok(service.salvar(categoria, usuarioId, usuarioNome));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> excluir(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
+            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+        try {
+            service.excluir(id, usuarioId, usuarioNome);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+}

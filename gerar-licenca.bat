@@ -13,7 +13,7 @@ if "%~1"=="" (
 
 echo.
 echo ============================================
-echo   GERADOR DE LICENCA - Porto Cabral
+echo   GERADOR DE LICENCA - Caravellus
 echo ============================================
 echo.
 echo Uso:

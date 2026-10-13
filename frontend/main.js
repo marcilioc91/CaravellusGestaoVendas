@@ -41,7 +41,7 @@ function createWindow() {
     }
   });
 
-  win.loadFile(path.join(__dirname, 'dist/porto-cabral-frontend/browser/index.html'));
+  win.loadFile(path.join(__dirname, 'dist/caravellus-frontend/browser/index.html'));
 }
 
 app.whenReady().then(() => {

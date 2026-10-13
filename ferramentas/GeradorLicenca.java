@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Gerador de chaves de licença do Porto Cabral. USO EXCLUSIVO DO FORNECEDOR: não vai no instalador.
+ * Gerador de chaves de licença do Caravellus. USO EXCLUSIVO DO FORNECEDOR: não vai no instalador.
  *
  * Executar com o Java 25 (sem compilar), ou pelo gerar-licenca.bat na raiz do projeto:
  *   java ferramentas/GeradorLicenca.java                          abre a janela do gerador
@@ -285,7 +285,7 @@ public class GeradorLicenca {
         private List<Emissao> historico = new ArrayList<>();
 
         Janela() {
-            super("Gerador de Licenças - Porto Cabral");
+            super("Gerador de Licenças - Caravellus");
             setDefaultCloseOperation(EXIT_ON_CLOSE);
 
             JPanel conteudo = new JPanel(new BorderLayout(0, 12));
@@ -469,7 +469,7 @@ public class GeradorLicenca {
             if (atual == null) return;
             JFileChooser seletor = new JFileChooser(Files.isDirectory(ultimaPasta) ? ultimaPasta.toFile() : null);
             seletor.setDialogTitle("Salvar arquivo de licença - " + atual.cliente());
-            seletor.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Licença Porto Cabral (*.lic)", "lic"));
+            seletor.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Licença Caravellus (*.lic)", "lic"));
             seletor.setSelectedFile(new java.io.File(seletor.getCurrentDirectory(), NOME_ARQUIVO_LICENCA));
             if (seletor.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 

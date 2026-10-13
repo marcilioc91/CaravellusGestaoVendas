@@ -3,7 +3,7 @@
     display: flex;
 
     background:
-        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../../../assets/background.jpg');
 
     background-size: cover;
@@ -45,4 +45,9 @@
 
 h2 {
     margin-bottom: 30px;
+}
+.login-tema {
+    position: absolute;
+    top: 24px;
+    right: 24px;
 }

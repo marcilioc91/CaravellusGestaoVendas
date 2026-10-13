@@ -4,14 +4,14 @@ chcp 65001 > nul
 
 echo.
 echo ============================================
-echo   BUILD - Porto Cabral
+echo   BUILD - Caravellus
 echo ============================================
 
 set ROOT=%~dp0
 set FRONTEND_DIR=%ROOT%frontend
 set BACKEND_DIR=%ROOT%backend
 set STATIC_DIR=%BACKEND_DIR%\src\main\resources\static
-set ANGULAR_DIST=%FRONTEND_DIR%\dist\porto-cabral-frontend\browser
+set ANGULAR_DIST=%FRONTEND_DIR%\dist\caravellus-frontend\browser
 set EMAIL_PADRAO=%BACKEND_DIR%\src\main\resources\email-padrao.properties
 
 :: ---- 0. Conta de e-mail padrao (vai embutida no JAR, fica fora do Git) ----
@@ -100,7 +100,7 @@ echo.
 echo [5/5] Gerando executável do Electron...
 cd /d "%FRONTEND_DIR%"
 
-:: Pasta de saida com a versao do package.json, pontos trocados por hifens (ex.: electron\PortoCabral1-3-1)
+:: Pasta de saida com a versao do package.json, pontos trocados por hifens (ex.: electron\Caravellus1-3-1)
 set VERSAO=
 for /f "usebackq delims=" %%V in (`node -p "require('./package.json').version.replace(/\./g, '-')"`) do set VERSAO=%%V
 if "%VERSAO%"=="" (
@@ -108,7 +108,7 @@ if "%VERSAO%"=="" (
     pause
     exit /b 1
 )
-set SAIDA_DIR=PortoCabral%VERSAO%
+set SAIDA_DIR=Caravellus%VERSAO%
 
 :: Certifique-se de que o electron-builder está instalado no projeto electron
 :: O caminho de saida e relativo a pasta frontend

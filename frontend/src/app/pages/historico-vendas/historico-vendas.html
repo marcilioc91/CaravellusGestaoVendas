@@ -1,6 +1,12 @@
 <div class="historico-container">
   <div class="historico-header">
     <h2>Histórico de Vendas</h2>
+    <span class="periodo-texto">{{ periodoTexto }}</span>
+    <span style="flex:1"></span>
+    <button mat-stroked-button (click)="abrirContexto()">
+      <mat-icon>date_range</mat-icon>
+      CONTEXTO
+    </button>
     <button mat-stroked-button routerLink="/home">
       <mat-icon>arrow_back</mat-icon>
       Voltar
@@ -16,15 +22,6 @@
         <mat-option [value]="nome">{{ nome }}</mat-option>
         }
       </mat-autocomplete>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="filtro-campo">
-      <mat-label>Mês</mat-label>
-      <mat-select [(ngModel)]="filtroMes">
-        @for (m of meses; track m.valor) {
-        <mat-option [value]="m.valor">{{ m.label }}</mat-option>
-        }
-      </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filtro-campo">
@@ -46,20 +43,21 @@
       </mat-select>
     </mat-form-field>
 
-    @if (filtroMes || filtroAno || filtroStatus || filtroCliente) {
+    @if (filtroAno || filtroStatus || filtroCliente) {
     <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros">
       <mat-icon>filter_alt_off</mat-icon>
     </button>
     }
   </div>
 
-  @if (carregando) {
+  @if (!periodo) {
+  } @else if (carregando) {
   <div class="carregando">
     <mat-icon>hourglass_empty</mat-icon>
     Carregando...
   </div>
   } @else if (grupos.length === 0) {
-  <p class="sem-dados">Nenhuma venda registrada.</p>
+  <p class="sem-dados">Nenhuma venda registrada no período.</p>
   } @else if (gruposFiltrados.length === 0) {
   <p class="sem-dados">Nenhuma venda encontrada com os filtros selecionados.</p>
   } @else {

@@ -17,7 +17,7 @@ import { TemaService } from './services/tema.service';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('porto-cabral');
+  protected readonly title = signal('caravellus');
 
   /** Tela de carregamento até abrir a primeira tela (o guard de licença espera o backend subir) */
   protected readonly iniciando = signal(true);

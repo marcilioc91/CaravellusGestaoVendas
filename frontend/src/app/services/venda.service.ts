@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { RelatorioInventarioItem, Venda, VendaResposta } from '../models/venda';
 import { AuthService } from './auth.service';
@@ -19,8 +19,8 @@ atualizarItens(vendaId: number, dados: { produtos: any[] }) {
     return this.http.post(this.api, venda);
   }
 
-  listarTodas() {
-    return this.http.get<VendaResposta[]>(this.api);
+  listarTodas(inicio?: string, fim?: string) {
+    return this.http.get<VendaResposta[]>(this.api, { params: this.periodo(inicio, fim) });
   }
 
   listarPorCliente(clienteId: number) {
@@ -31,9 +31,16 @@ atualizarItens(vendaId: number, dados: { produtos: any[] }) {
     return this.http.patch(`${this.api}/${id}/pagamento`, dados);
   }
 
-  getRelatorioInventario() {
+  private periodo(inicio?: string, fim?: string) {
+    let params = new HttpParams();
+    if (inicio) params = params.set('inicio', inicio);
+    if (fim) params = params.set('fim', fim);
+    return params;
+  }
+
+  getRelatorioInventario(inicio?: string, fim?: string) {
     const perfil = this.auth.getUsuarioLogado()?.perfil ?? '';
     const headers = new HttpHeaders({ 'X-Usuario-Perfil': perfil });
-    return this.http.get<RelatorioInventarioItem[]>(`${this.api}/relatorio/inventario`, { headers });
+    return this.http.get<RelatorioInventarioItem[]>(`${this.api}/relatorio/inventario`, { headers, params: this.periodo(inicio, fim) });
   }
 }
