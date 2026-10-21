@@ -265,8 +265,7 @@ public class GeradorLicenca {
         String texto = """
                 Olá, %s!
 
-                Segue em anexo o arquivo de licença do Caravellus para o computador que fez o pedido
-                (código da máquina %s).
+                Segue em anexo o arquivo de licença do Caravellus para o computador que fez o pedido.
 
                 Para ativar o sistema:
                 1. Salve o arquivo anexo (%s) no computador.
@@ -274,7 +273,7 @@ public class GeradorLicenca {
                 3. Escolha o arquivo salvo.
 
                 A licença vale somente para esse computador.
-                """.formatted(e.cliente(), e.maquina(), NOME_ARQUIVO_LICENCA);
+                """.formatted(e.cliente(), NOME_ARQUIVO_LICENCA);
         enviarEmail(contaEmail(), e.email(), "Caravellus - Arquivo de licença", texto,
                 NOME_ARQUIVO_LICENCA, conteudoArquivo(e).getBytes(StandardCharsets.UTF_8));
     }
