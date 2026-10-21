@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
  * (ferramentas/GeradorLicenca.java) para o código desta máquina. A licença é vitalícia.
  *
  * Chave: PC1.<payload Base64 URL>.<assinatura Ed25519 do payload Base64 URL>
- * Payload (UTF-8): linhas "cliente=...", "maquina=XXXX-XXXX-XXXX-XXXX", "emitida=AAAA-MM-DD".
+ * Payload (UTF-8): linhas "cliente=...", "email=...", "maquina=XXXX-XXXX-XXXX-XXXX", "emitida=AAAA-MM-DD".
+ * "email" (e-mail do cliente informado no pedido de licença) é opcional: licenças antigas não têm.
  * Só quem tem a chave privada do fornecedor consegue gerar uma assinatura válida.
  *
  * O cliente pode colar a chave ou importar o arquivo de licença gerado pelo fornecedor, que traz a
@@ -57,7 +58,7 @@ public class LicencaService {
     /** Base32 sem I, O, 0 e 1 (evita confusão ao ditar ou digitar o código) */
     private static final String ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-    public record Licenca(String cliente, String maquina, String emitida) {}
+    public record Licenca(String cliente, String email, String maquina, String emitida) {}
 
     private final Path arquivo;
     private String codigoMaquina;
@@ -156,7 +157,8 @@ public class LicencaService {
         if (!codigoMaquina.equals(campos.get("maquina"))) {
             throw new IllegalArgumentException("Esta chave de licença foi gerada para outra máquina.");
         }
-        return new Licenca(campos.getOrDefault("cliente", ""), campos.get("maquina"), campos.getOrDefault("emitida", ""));
+        return new Licenca(campos.getOrDefault("cliente", ""), campos.getOrDefault("email", ""), campos.get("maquina"),
+                campos.getOrDefault("emitida", ""));
     }
 
     /** Código exibido na tela de ativação: hash do identificador do Windows, no formato XXXX-XXXX-XXXX-XXXX. */

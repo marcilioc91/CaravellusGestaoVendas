@@ -2,6 +2,8 @@ package com.caravellus.backend.controller;
 
 import com.caravellus.backend.entity.Categoria;
 import com.caravellus.backend.service.CategoriaService;
+import com.caravellus.backend.config.AutenticacaoInterceptor;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +25,10 @@ public class CategoriaController {
     @PostMapping
     public ResponseEntity<?> salvar(
             @RequestBody Categoria categoria,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             categoria.setId(null);
-            return ResponseEntity.status(201).body(service.salvar(categoria, usuarioId, usuarioNome));
+            return ResponseEntity.status(201).body(service.salvar(categoria, usuario.id(), usuario.nome()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -37,11 +38,10 @@ public class CategoriaController {
     public ResponseEntity<?> atualizar(
             @PathVariable Long id,
             @RequestBody Categoria categoria,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             categoria.setId(id);
-            return ResponseEntity.ok(service.salvar(categoria, usuarioId, usuarioNome));
+            return ResponseEntity.ok(service.salvar(categoria, usuario.id(), usuario.nome()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -50,10 +50,9 @@ public class CategoriaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluir(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            service.excluir(id, usuarioId, usuarioNome);
+            service.excluir(id, usuario.id(), usuario.nome());
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());

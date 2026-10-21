@@ -1,5 +1,6 @@
 package com.caravellus.backend.controller;
 
+import com.caravellus.backend.config.SomenteAdmin;
 import com.caravellus.backend.dto.PagamentoRequestDTO;
 import com.caravellus.backend.dto.VendaRequestDTO;
 import com.caravellus.backend.entity.Venda;
@@ -41,14 +42,11 @@ public class VendaController {
         return service.atualizarPagamento(id, dto);
     }
 
+    @SomenteAdmin
     @GetMapping("/relatorio/inventario")
     public ResponseEntity<?> relatorioInventario(
-            @RequestHeader(value = "X-Usuario-Perfil", required = false) String perfil,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
-        if (!"ADMIN".equals(perfil)) {
-            return ResponseEntity.status(403).body("Acesso negado.");
-        }
         return ResponseEntity.ok(service.gerarRelatorioInventario(inicio, fim));
     }
 

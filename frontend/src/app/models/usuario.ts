@@ -13,6 +13,8 @@ export interface Usuario {
   senha?: string;
   perfil?: 'ADMIN' | 'OPERADOR';
   trocarSenha?: boolean;
+  /** Token da sessão, devolvido pelo login (ausente enquanto a troca de senha estiver pendente) */
+  token?: string;
 }
 
 export interface LoginRequest {

@@ -29,6 +29,16 @@ class LicencaServiceTest {
     }
 
     @Test
+    void leEmailDoClienteQuandoPresente() throws Exception {
+        String comEmail = gerarChave(par.getPrivate(),
+                "cliente=Cantina\nemail=dono@cantina.com.br\nmaquina=" + MAQUINA + "\nemitida=2026-10-20");
+        String semEmail = gerarChave(par.getPrivate(), "cliente=Cantina\nmaquina=" + MAQUINA + "\nemitida=2026-10-08");
+
+        assertEquals("dono@cantina.com.br", LicencaService.verificar(comEmail, par.getPublic(), MAQUINA).email());
+        assertEquals("", LicencaService.verificar(semEmail, par.getPublic(), MAQUINA).email());
+    }
+
+    @Test
     void aceitaChaveComQuebrasDeLinhaEEspacos() throws Exception {
         String chave = gerarChave(par.getPrivate(), "cliente=X\nmaquina=" + MAQUINA + "\nemitida=2026-10-08");
         String quebrada = chave.substring(0, 40) + "\r\n  " + chave.substring(40) + " ";

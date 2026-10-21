@@ -166,7 +166,7 @@ public class UsuarioService {
         usuario.setUsuarioLogin(dto.getUsuario());
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-        usuario.setPerfil(dto.getPerfil() != null ? dto.getPerfil() : PerfilUsuario.OPERADOR);
+        usuario.setPerfil(PerfilUsuario.OPERADOR);
         usuario = repository.save(usuario);
 
         // Todo usuário também é cliente; na promoção o cliente já existe (com o histórico de compras)

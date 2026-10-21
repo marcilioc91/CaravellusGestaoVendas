@@ -4,6 +4,8 @@ import com.caravellus.backend.entity.Cliente;
 import com.caravellus.backend.service.ClienteService;
 import com.caravellus.backend.service.DuplicidadeException;
 import com.caravellus.backend.service.ImportacaoClientesService;
+import com.caravellus.backend.config.AutenticacaoInterceptor;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,10 +34,9 @@ public class ClienteController {
     public ResponseEntity<?> salvar(
             @RequestBody Cliente cliente,
             @RequestParam(defaultValue = "false") boolean confirmarDuplicidade,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.status(201).body(service.salvar(cliente, confirmarDuplicidade, usuarioId, usuarioNome));
+            return ResponseEntity.status(201).body(service.salvar(cliente, confirmarDuplicidade, usuario.id(), usuario.nome()));
         } catch (DuplicidadeException e) {
             return ResponseEntity.status(409).body(e.resposta());
         } catch (IllegalArgumentException e) {
@@ -48,11 +49,10 @@ public class ClienteController {
     public ResponseEntity<?> importar(
             @RequestParam("arquivo") MultipartFile arquivo,
             @RequestParam(defaultValue = "false") boolean confirmar,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             return ResponseEntity.ok(importacaoService.importar(
-                    arquivo.getBytes(), arquivo.getOriginalFilename(), confirmar, usuarioId, usuarioNome));
+                    arquivo.getBytes(), arquivo.getOriginalFilename(), confirmar, usuario.id(), usuario.nome()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (IOException e) {
@@ -64,10 +64,9 @@ public class ClienteController {
     public ResponseEntity<?> atualizar(
             @PathVariable Long id,
             @RequestBody Cliente cliente,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.ok(service.atualizar(id, cliente, usuarioId, usuarioNome));
+            return ResponseEntity.ok(service.atualizar(id, cliente, usuario.id(), usuario.nome()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -76,8 +75,7 @@ public class ClienteController {
     @DeleteMapping("/{id}")
     public void excluir(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
-        service.excluir(id, usuarioId, usuarioNome);
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        service.excluir(id, usuario.id(), usuario.nome());
     }
 }

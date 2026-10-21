@@ -1,7 +1,6 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { RelatorioInventarioItem, Venda, VendaResposta } from '../models/venda';
-import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +12,7 @@ atualizarItens(vendaId: number, dados: { produtos: any[] }) {
 }
   private api = 'http://localhost:8080/vendas';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient) {}
 
   realizarVenda(venda: Venda) {
     return this.http.post(this.api, venda);
@@ -39,8 +38,6 @@ atualizarItens(vendaId: number, dados: { produtos: any[] }) {
   }
 
   getRelatorioInventario(inicio?: string, fim?: string) {
-    const perfil = this.auth.getUsuarioLogado()?.perfil ?? '';
-    const headers = new HttpHeaders({ 'X-Usuario-Perfil': perfil });
-    return this.http.get<RelatorioInventarioItem[]>(`${this.api}/relatorio/inventario`, { headers, params: this.periodo(inicio, fim) });
+    return this.http.get<RelatorioInventarioItem[]>(`${this.api}/relatorio/inventario`, { params: this.periodo(inicio, fim) });
   }
 }

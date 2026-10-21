@@ -1,6 +1,5 @@
 package com.caravellus.backend.dto;
 
-import com.caravellus.backend.entity.PerfilUsuario;
 import lombok.Data;
 
 @Data
@@ -12,7 +11,6 @@ public class CadastroRequestDTO {
     private String usuario;
     private String senha;
     private String obs;
-    private PerfilUsuario perfil;
     /** true: grava mesmo havendo cadastro parecido (o usuário confirmou que é outra pessoa) */
     private boolean confirmarDuplicidade;
     /** "Sou eu": cria o acesso para este cadastro existente, apontado pelo aviso de duplicidade */

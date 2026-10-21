@@ -113,3 +113,44 @@ textarea {
     color: var(--cor-erro);
     font-size: 0.9rem;
 }
+
+.ativacao-pedido {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 0 0 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(46, 125, 50, 0.12);
+    line-height: 1.4;
+}
+
+.ativacao-pedido > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ativacao-link {
+    align-self: flex-start;
+    margin: 4px 0 0 -12px;
+}
+
+.ativacao-cancelar {
+    margin-top: 8px;
+}
+
+.ativacao-manual {
+    margin-top: 20px;
+}
+
+.ativacao-manual summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 12px;
+}
+
+form .mat-mdc-form-field + .mat-mdc-form-field {
+    margin-top: 4px;
+}

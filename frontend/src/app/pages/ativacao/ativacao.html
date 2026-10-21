@@ -5,10 +5,6 @@
     @if (carregando) {
     <mat-spinner diameter="36" class="ativacao-carregando"></mat-spinner>
     } @else {
-    <p class="ativacao-texto">
-        Para usar o Caravellus neste computador, envie o <strong>código da máquina</strong> ao fornecedor do
-        sistema e importe o arquivo de licença recebido (ou cole a chave).
-    </p>
 
     @if (status?.mensagem) {
     <p class="ativacao-alerta">
@@ -18,36 +14,91 @@
     }
 
     @if (status?.codigoMaquina) {
-    <div class="ativacao-codigo">
-        <span class="ativacao-codigo-rotulo">Código da máquina</span>
-        <div class="ativacao-codigo-valor">
-            <code>{{ status?.codigoMaquina }}</code>
-            <button mat-icon-button type="button" (click)="copiarCodigo()" aria-label="Copiar código da máquina">
-                <mat-icon>content_copy</mat-icon>
+
+    @if (status?.solicitacao && !editandoPedido) {
+    <div class="ativacao-pedido">
+        <mat-icon>mark_email_read</mat-icon>
+        <div>
+            <strong>Pedido de licença enviado</strong>
+            <span>em {{ enviadoEm }}. O arquivo de licença será enviado para
+                <strong>{{ status?.solicitacao?.email }}</strong>.</span>
+            <button mat-button type="button" class="ativacao-link" (click)="editarPedido()">
+                Corrigir dados e enviar de novo
             </button>
         </div>
     </div>
+    } @else {
+    <p class="ativacao-texto">
+        Primeiro acesso: informe seus dados para solicitar a licença. O pedido é enviado ao fornecedor do
+        sistema, e o <strong>arquivo de licença</strong> chegará no e-mail informado.
+    </p>
+
+    <form (ngSubmit)="solicitar()" #formPedido="ngForm">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome ou empresa</mat-label>
+            <input matInput [(ngModel)]="pedido.nome" name="nome" required maxlength="120">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>E-mail</mat-label>
+            <input matInput [(ngModel)]="pedido.email" name="email" type="email" required email maxlength="120">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Telefone (opcional)</mat-label>
+            <input matInput [(ngModel)]="pedido.telefone" name="telefone" mask="(00) 00000-0000">
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" class="full-width"
+            [disabled]="formPedido.invalid || solicitando">
+            @if (solicitando) { <mat-spinner diameter="18" class="ativacao-spinner"></mat-spinner> }
+            @else { <mat-icon>send</mat-icon> }
+            Solicitar licença
+        </button>
+        @if (status?.solicitacao) {
+        <button mat-button type="button" class="full-width ativacao-cancelar" (click)="editandoPedido = false">
+            Cancelar
+        </button>
+        }
+    </form>
+    }
+
+    <div class="ativacao-ou"><span>recebeu a licença?</span></div>
 
     <input #seletorArquivo type="file" accept=".lic" hidden (change)="importarArquivo($event)">
-    <button mat-raised-button color="primary" type="button" class="full-width" [disabled]="enviando"
+    <button mat-stroked-button color="primary" type="button" class="full-width" [disabled]="enviando"
         (click)="seletorArquivo.click()">
         @if (enviando) { <mat-spinner diameter="18" class="ativacao-spinner"></mat-spinner> }
         @else { <mat-icon>upload_file</mat-icon> }
         Importar arquivo de licença
     </button>
 
-    <div class="ativacao-ou"><span>ou cole a chave</span></div>
+    <details class="ativacao-manual">
+        <summary>Sem internet? Ativação manual</summary>
+        <p class="ativacao-texto">
+            Envie o código da máquina ao fornecedor e cole abaixo a chave recebida.
+        </p>
+        <div class="ativacao-codigo">
+            <span class="ativacao-codigo-rotulo">Código da máquina</span>
+            <div class="ativacao-codigo-valor">
+                <code>{{ status?.codigoMaquina }}</code>
+                <button mat-icon-button type="button" (click)="copiarCodigo()" aria-label="Copiar código da máquina">
+                    <mat-icon>content_copy</mat-icon>
+                </button>
+            </div>
+        </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Chave de licença</mat-label>
-        <textarea matInput [(ngModel)]="chave" name="chave" rows="4" spellcheck="false"
-            placeholder="PC1...."></textarea>
-    </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Chave de licença</mat-label>
+            <textarea matInput [(ngModel)]="chave" name="chave" rows="4" spellcheck="false"
+                placeholder="PC1...."></textarea>
+        </mat-form-field>
 
-    <button mat-stroked-button color="primary" class="full-width" [disabled]="!chave.trim() || enviando"
-        (click)="ativar()">
-        Ativar com a chave
-    </button>
+        <button mat-stroked-button color="primary" class="full-width" [disabled]="!chave.trim() || enviando"
+            (click)="ativar()">
+            Ativar com a chave
+        </button>
+    </details>
     }
     }
 

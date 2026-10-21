@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { LoginRequest, Usuario } from '../models/usuario';
 
@@ -30,8 +30,9 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
+  /** Devolve o usuário com o token da sessão (sem token se ainda precisar trocar a senha) */
   login(loginRequest: LoginRequest) {
-    return this.http.post(this.api + "/login", loginRequest)
+    return this.http.post<Usuario>(this.api + "/login", loginRequest)
   }
 
   cadastrar(dados: CadastroRequest) {
@@ -68,35 +69,35 @@ export class AuthService {
     return u ? JSON.parse(u) : null;
   }
 
+  /** Token enviado em "Authorization: Bearer" (ver auth.interceptor) */
+  getToken(): string | null {
+    return this.getUsuarioLogado()?.token ?? null;
+  }
+
+  /** Só controla o que a tela mostra: o backend confere o perfil pelo token */
   isAdmin(): boolean {
     return this.getUsuarioLogado()?.perfil === 'ADMIN';
   }
 
-  private adminHeaders(): HttpHeaders {
-    const u = this.getUsuarioLogado();
-    return new HttpHeaders({
-      'X-Usuario-Perfil': u?.perfil ?? '',
-      'X-Usuario-Id': String(u?.id ?? ''),
-    });
-  }
-
   listarUsuarios() {
-    return this.http.get<Usuario[]>(`${this.api}/usuarios`, { headers: this.adminHeaders() });
+    return this.http.get<Usuario[]>(`${this.api}/usuarios`);
   }
 
   atualizarPerfil(id: number, perfil: string) {
-    return this.http.patch<Usuario>(`${this.api}/usuarios/${id}/perfil`, { perfil }, { headers: this.adminHeaders() });
+    return this.http.patch<Usuario>(`${this.api}/usuarios/${id}/perfil`, { perfil });
   }
 
   resetSenha(id: number, novaSenha: string) {
-    return this.http.patch(
-      `${this.api}/usuarios/${id}/reset-senha`,
-      { novaSenha },
-      { headers: this.adminHeaders(), responseType: 'text' }
-    );
+    return this.http.patch(`${this.api}/usuarios/${id}/reset-senha`, { novaSenha }, { responseType: 'text' });
   }
 
+  /** Encerra a sessão no backend (sem esperar a resposta) e esquece o usuário */
   logout() {
+    const token = this.getToken();
+    if (token) {
+      // Cabeçalho explícito: o usuário sai do sessionStorage antes de a requisição partir
+      this.http.post(this.api + "/logout", {}, { headers: { Authorization: `Bearer ${token}` } }).subscribe({ error: () => {} });
+    }
     sessionStorage.removeItem('usuario');
   }
 }

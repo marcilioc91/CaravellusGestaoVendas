@@ -2,6 +2,9 @@ package com.caravellus.backend.controller;
 
 import com.caravellus.backend.entity.Produto;
 import com.caravellus.backend.service.ProdutoService;
+import com.caravellus.backend.config.AutenticacaoInterceptor;
+import com.caravellus.backend.config.Publico;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -28,30 +31,31 @@ public class ProdutoController {
     @PostMapping
     public Produto salvar(
             @RequestBody Produto produto,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
-        return service.salvar(produto, usuarioId, usuarioNome);
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.salvar(produto, usuario.id(), usuario.nome());
     }
 
     @PutMapping("/{id}")
     public Produto atualizar(
             @PathVariable Long id,
             @RequestBody Produto produto,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         produto.setId(id);
-        return service.salvar(produto, usuarioId, usuarioNome);
+        return service.salvar(produto, usuario.id(), usuario.nome());
     }
 
     @DeleteMapping("/{id}")
     public void excluir(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
-        service.excluir(id, usuarioId, usuarioNome);
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        service.excluir(id, usuario.id(), usuario.nome());
     }
 
-    /** O frontend pede a imagem com ?v=imagemVersao, então a resposta pode ficar no cache do navegador */
+    /**
+     * O frontend pede a imagem com ?v=imagemVersao, então a resposta pode ficar no cache do navegador.
+     * Pública: a tag <img> não envia o token de login.
+     */
+    @Publico
     @GetMapping("/{id}/imagem")
     public ResponseEntity<byte[]> imagem(@PathVariable Long id) {
         return service.buscarImagem(id)
@@ -66,16 +70,14 @@ public class ProdutoController {
     public void salvarImagem(
             @PathVariable Long id,
             @RequestParam("arquivo") MultipartFile arquivo,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) throws IOException {
-        service.salvarImagem(id, arquivo.getContentType(), arquivo.getBytes(), usuarioId, usuarioNome);
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) throws IOException {
+        service.salvarImagem(id, arquivo.getContentType(), arquivo.getBytes(), usuario.id(), usuario.nome());
     }
 
     @DeleteMapping("/{id}/imagem")
     public void removerImagem(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Usuario-Id", required = false) Long usuarioId,
-            @RequestHeader(value = "X-Usuario-Nome", required = false) String usuarioNome) {
-        service.removerImagem(id, usuarioId, usuarioNome);
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        service.removerImagem(id, usuario.id(), usuario.nome());
     }
 }

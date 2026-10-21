@@ -9,8 +9,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LicencaService, LicencaStatus } from '../../services/licenca.service';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
-// ── Ativação do sistema: o cliente envia o código da máquina e informa a chave recebida ──
+// ── Ativação do sistema: no primeiro acesso o cliente pede a licença (o backend envia o pedido ao
+// fornecedor por e-mail) e depois importa o arquivo de licença recebido. Sem internet: código + chave ──
 @Component({
   selector: 'app-ativacao',
   standalone: true,
@@ -21,7 +23,9 @@ import { LicencaService, LicencaStatus } from '../../services/licenca.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    NgxMaskDirective
   ],
+  providers: [provideNgxMask()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ativacao.html',
   styleUrl: './ativacao.css',
@@ -32,6 +36,11 @@ export class Ativacao implements OnInit {
   chave = '';
   enviando = false;
   erro = '';
+
+  pedido = { nome: '', email: '', telefone: '' };
+  solicitando = false;
+  /** Pedido já enviado, mas o cliente quer corrigir os dados e enviar de novo */
+  editandoPedido = false;
 
   constructor(
     private licenca: LicencaService,
@@ -45,6 +54,7 @@ export class Ativacao implements OnInit {
       next: s => {
         this.status = s;
         this.carregando = false;
+        this.preencherPedido();
         this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
@@ -52,6 +62,43 @@ export class Ativacao implements OnInit {
         this.falha(err, 'Não foi possível consultar a licença.');
       },
     });
+  }
+
+  /** "20/10/2026 14:05" a partir de "2026-10-20 14:05:00" */
+  get enviadoEm(): string {
+    const valor = this.status?.solicitacao?.enviadaEm ?? '';
+    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(valor);
+    return m ? `${m[3]}/${m[2]}/${m[1]} às ${m[4]}:${m[5]}` : valor;
+  }
+
+  editarPedido() {
+    this.preencherPedido();
+    this.editandoPedido = true;
+  }
+
+  solicitar() {
+    if (this.solicitando || !this.pedido.nome.trim() || !this.pedido.email.trim()) return;
+    this.solicitando = true;
+    this.erro = '';
+    this.cdr.detectChanges();
+    this.licenca.solicitar(this.pedido).subscribe({
+      next: s => {
+        this.solicitando = false;
+        this.status = s;
+        this.editandoPedido = false;
+        this.snackBar.open('Pedido de licença enviado. Aguarde o arquivo de licença no seu e-mail.', 'OK', { duration: 5000 });
+        this.cdr.detectChanges();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.solicitando = false;
+        this.falha(err, 'Não foi possível enviar o pedido de licença.');
+      },
+    });
+  }
+
+  private preencherPedido() {
+    const s = this.status?.solicitacao;
+    if (s) this.pedido = { nome: s.nome, email: s.email, telefone: s.telefone ?? '' };
   }
 
   copiarCodigo() {
