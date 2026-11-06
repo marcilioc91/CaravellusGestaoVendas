@@ -22,7 +22,7 @@ import { ClienteService } from '../../services/cliente.service';
 import { VendaService } from '../../services/venda.service';
 import { CadastroModal } from '../cadastro-modal/cadastro-modal';
 import { ImportarClientesDialog } from './importar-clientes-dialog';
-import { formatarTelefone } from '../../utils/utils';
+import { formatarTelefone, normalizarTexto } from '../../utils/utils';
 
 // ── Diálogo de confirmação ────────────────────────────────────────────────────
 @Component({
@@ -151,11 +151,11 @@ export class Clientes implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.filtroCtrl.valueChanges.subscribe(val => {
-      const v = (val ?? '').trim().toLowerCase();
+      const v = normalizarTexto(val);
       this.dataSource.filter = v;
       if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
       this.nomesFiltrados = v
-        ? [...new Set(this.dataSource.data.map(c => c.pessoa.nome).filter(n => n.toLowerCase().includes(v)))].slice(0, 8)
+        ? [...new Set(this.dataSource.data.map(c => c.pessoa.nome).filter(n => normalizarTexto(n).includes(v)))].slice(0, 8)
         : [];
     });
     this.carregar();
@@ -167,7 +167,7 @@ export class Clientes implements OnInit, AfterViewInit {
     this.dataSource.sortingDataAccessor = (item, property) =>
       property === 'nome' ? item.pessoa.nome.toLowerCase() : '';
     this.dataSource.filterPredicate = (data, filter) =>
-      data.pessoa.nome.toLowerCase().includes(filter);
+      normalizarTexto(data.pessoa.nome).includes(filter);
   }
 
   carregar() {

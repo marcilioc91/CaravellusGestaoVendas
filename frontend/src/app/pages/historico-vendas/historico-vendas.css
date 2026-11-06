@@ -109,3 +109,89 @@
   flex-direction: column;
   gap: 16px;
 }
+
+/* Bloco usado so na impressao/PDF (montado por exportarPdf/imprimir) */
+.so-impressao {
+  display: none;
+}
+
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+@media print {
+  :host,
+  :host ::ng-deep * {
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Tudo que e da tela interativa sai do PDF; fica so o titulo + periodo do cabecalho */
+  .historico-header button,
+  .filtros-bar,
+  mat-accordion,
+  .carregando,
+  .sem-dados {
+    display: none !important;
+  }
+
+  .historico-container {
+    padding: 0;
+    max-width: none;
+  }
+
+  .so-impressao {
+    display: block;
+    font-size: 10pt;
+  }
+
+  .impressao-filtros {
+    margin: 0 0 6mm;
+  }
+
+  .impressao-cliente {
+    margin-bottom: 8mm;
+  }
+
+  .impressao-cliente h3 {
+    margin: 0 0 1mm;
+    text-transform: uppercase;
+    break-after: avoid; /* nao deixa o nome do cliente sozinho no fim da pagina */
+  }
+
+  .impressao-resumo {
+    margin: 0 0 2mm;
+  }
+
+  .impressao-tabela {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .impressao-tabela thead {
+    display: table-header-group; /* repete o cabecalho da tabela em cada pagina */
+  }
+
+  .impressao-tabela th,
+  .impressao-tabela td {
+    border-bottom: 1px solid #000;
+    padding: 1mm 2mm;
+    text-align: left;
+  }
+
+  .impressao-tabela .col-num {
+    text-align: right;
+  }
+
+  .impressao-tabela tr {
+    break-inside: avoid; /* uma linha nunca fica cortada entre duas paginas */
+  }
+
+  .impressao-total-geral {
+    margin-top: 6mm;
+    font-weight: bold;
+    text-align: right;
+  }
+}

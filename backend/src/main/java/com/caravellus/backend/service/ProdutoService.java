@@ -5,6 +5,7 @@ import com.caravellus.backend.entity.ProdutoImagem;
 import com.caravellus.backend.repository.CategoriaRepository;
 import com.caravellus.backend.repository.ProdutoImagemRepository;
 import com.caravellus.backend.repository.ProdutoRepository;
+import com.caravellus.backend.repository.VendaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,18 +35,40 @@ public class ProdutoService {
     @Autowired
     private AuditoriaService auditoriaService;
 
+    @Autowired
+    private VendaRepository vendaRepository;
+
     public List<Produto> listar() {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
     }
 
+    @Transactional
     public Produto salvar(Produto produto, Long usuarioId, String usuarioNome) {
         boolean isNovo = produto.getId() == null;
-        if (produto.getCategoria() != null && produto.getCategoria().getId() != null) {
+
+        BigDecimal precoAnterior =
+                isNovo ? null : repository.findById(produto.getId()).map(Produto::getPreco).orElse(null);
+
+        if (produto.getCategoria() != null && produto.getCategoria().getId() != null)
             produto.setCategoria(categoriaRepository.findById(produto.getCategoria().getId()).orElse(null));
-        } else {
+        else
             produto.setCategoria(null);
-        }
+
         Produto salvo = repository.save(produto);
+        boolean precoMudou =
+                precoAnterior != null && salvo.getPreco() != null && precoAnterior.compareTo(salvo.getPreco()) != 0;
+
+        if (precoMudou) {
+            int itens = vendaRepository.atualizarPrecoItens(salvo.getId(), salvo.getPreco());
+            auditoriaService.registrar(
+                    usuarioId,
+                    usuarioNome,
+                    "ALTERACAO_PRODUTO",
+                    "Preço do produto '" + salvo.getNome() + "' (ID " + salvo.getId() +
+                            " alterado de :" + precoAnterior + " para: " + salvo.getPreco() +
+                            "; " + itens + " item(ns) de venda atualizados"
+            );
+        }
 
         String tipo = isNovo ? "INCLUSAO_PRODUTO" : "ALTERACAO_PRODUTO";
         String acao = isNovo ? "incluído" : "alterado";

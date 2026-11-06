@@ -10,7 +10,7 @@
 
   <mat-form-field class="full-width">
     <mat-label>Cliente</mat-label>
-    <input matInput [matAutocomplete]="autoCliente" [(ngModel)]="clienteSearchText"
+    <input #campoCliente matInput [matAutocomplete]="autoCliente" [(ngModel)]="clienteSearchText"
       (ngModelChange)="filtrarClientes($event)" placeholder="Digite o nome do cliente">
     <mat-autocomplete #autoCliente="matAutocomplete" (optionSelected)="onClienteSelecionado($event)">
       @for (c of filteredClientes; track c.id) {

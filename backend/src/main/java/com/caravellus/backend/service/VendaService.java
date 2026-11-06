@@ -14,6 +14,8 @@ import com.caravellus.backend.repository.VendaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -173,5 +175,28 @@ public class VendaService {
         }
 
         return vendaRepository.save(venda);
+    }
+
+    /** Exclui a venda e devolve ao estoque a quantidade de cada item */
+    @Transactional
+    public void excluir(Long id, Long usuarioId, String usuarioNome) {
+        Venda venda = vendaRepository.findById(id.intValue())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada."));
+
+        StringBuilder itensDesc = new StringBuilder();
+        for (VendaItem item : venda.getItens()) {
+            Produto p = item.getProduto();
+            p.setEstoque(p.getEstoque() + item.getQuantidade());
+            produtoRepository.save(p);
+
+            if (itensDesc.length() > 0) itensDesc.append(", ");
+            itensDesc.append(p.getNome()).append(" x").append(item.getQuantidade());
+        }
+
+        String nomeCliente = venda.getCliente().getPessoa().getNome();
+        vendaRepository.delete(venda); // cascade = ALL em Venda.itens apaga os VENDA_ITEM junto
+
+        auditoriaService.registrar(usuarioId, usuarioNome, "EXCLUSAO_VENDA",
+                "Venda #" + id + " do cliente '" + nomeCliente + "' excluída. Itens devolvidos ao estoque: " + itensDesc);
     }
 }

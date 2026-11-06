@@ -143,6 +143,7 @@ export class Auditoria implements OnInit {
   labelTipo(tipo: string): string {
     const mapa: Record<string, string> = {
       VENDA: 'Venda',
+      EXCLUSAO_VENDA: 'Excl. Venda',
       INCLUSAO_PRODUTO: 'Incl. Produto',
       ALTERACAO_PRODUTO: 'Alt. Produto',
       EXCLUSAO_PRODUTO: 'Excl. Produto',

@@ -1,6 +1,8 @@
 package com.caravellus.backend.controller;
 
 import com.caravellus.backend.config.SomenteAdmin;
+import com.caravellus.backend.config.AutenticacaoInterceptor;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import com.caravellus.backend.dto.PagamentoRequestDTO;
 import com.caravellus.backend.dto.VendaRequestDTO;
 import com.caravellus.backend.entity.Venda;
@@ -54,5 +56,13 @@ public class VendaController {
     public ResponseEntity<Venda> atualizarItens(@PathVariable Long id, @RequestBody VendaRequestDTO dto) {
         Venda vendaAtualizada = service.atualizarItens(id, dto);
         return ResponseEntity.ok(vendaAtualizada);
+    }
+
+    @SomenteAdmin
+    @DeleteMapping("/{id}")
+    public void excluir(
+            @PathVariable Long id,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        service.excluir(id, usuario.id(), usuario.nome());
     }
 }

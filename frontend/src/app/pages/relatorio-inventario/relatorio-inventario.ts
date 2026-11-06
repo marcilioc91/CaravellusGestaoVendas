@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Title } from '@angular/platform-browser';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +11,7 @@ import { VendaService } from '../../services/venda.service';
 import { RelatorioInventarioItem } from '../../models/venda';
 import { Periodo, PeriodoService } from '../../services/periodo.service';
 import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
+import { imprimirPagina } from '../../utils/utils';
 
 @Component({
   selector: 'app-relatorio-inventario',
@@ -42,7 +42,6 @@ export class RelatorioInventario implements OnInit {
     private vendaService: VendaService,
     private periodoService: PeriodoService,
     private dialog: MatDialog,
-    private title: Title,
     private router: Router,
     private cdRef: ChangeDetectorRef
   ) {}
@@ -78,15 +77,11 @@ export class RelatorioInventario implements OnInit {
   }
 
   imprimir() {
-    window.print();
+    imprimirPagina();
   }
 
-  /** Mesmo caminho da impressão: no diálogo, escolher "Salvar como PDF". */
   exportarPdf() {
-    const anterior = this.title.getTitle();
-    this.title.setTitle(`Relatorio de Inventario ${this.periodoTexto.replace(/\//g, '-')}`);
-    window.print();
-    this.title.setTitle(anterior);
+    imprimirPagina({ titulo: `Relatorio de Inventario ${this.periodoTexto}` });
   }
 
   private carregar() {

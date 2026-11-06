@@ -13,12 +13,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Subject, debounceTime, forkJoin } from 'rxjs';
 import { VendaResposta } from '../../models/venda';
 import { VendaService } from '../../services/venda.service';
 import { ProdutoService } from '../../services/produto.service';
 import { Periodo, PeriodoService } from '../../services/periodo.service';
 import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
+import { imprimirPagina, normalizarTexto } from '../../utils/utils';
+import { AuthService } from '../../services/auth.service';
+import { ConfirmDialog } from '../clientes/clientes';
 
 interface GrupoCliente {
   clienteId: number;
@@ -146,6 +149,8 @@ export class HistoricoVendas implements OnInit {
   filtroAno = 0;
   filtroStatus = '';
   filtroCliente = '';
+  imprimindo = false;
+  isAdmin = false;
 
   get periodoTexto(): string {
     return this.periodo
@@ -153,34 +158,40 @@ export class HistoricoVendas implements OnInit {
       : '';
   }
 
-  get anos(): { valor: number; label: string }[] {
-    const set = new Set<number>();
+  // Calculados so quando os dados ou um filtro mudam (aplicarFiltros), nao a cada ciclo de tela
+  anos: { valor: number; label: string }[] = [];
+  clientesSugeridos: string[] = [];
+  gruposFiltrados: GrupoCliente[] = [];
+
+  private filtroCliente$ = new Subject<void>();
+  private totais = new Map<number, number>();
+
+  private calcularAnos() {
+    const set = new Set<number>([new Date().getFullYear()]);
     for (const g of this.grupos) {
-      for (const v of g.vendas) {
-        set.add(new Date(v.data_venda).getFullYear());
-      }
+      for (const v of g.vendas) set.add(new Date(v.data_venda).getFullYear());
     }
-    const anoAtual = new Date().getFullYear();
-    if (!set.has(anoAtual)) set.add(anoAtual);
-    return [
+    this.anos = [
       { valor: 0, label: 'Todos os anos' },
       ...Array.from(set).sort().map(a => ({ valor: a, label: String(a) })),
     ];
   }
 
-  get clientesSugeridos(): string[] {
-    const termo = this.filtroCliente.toLowerCase().trim();
-    return this.grupos
-      .map(g => g.nomeCliente)
-      .filter(nome => !termo || nome.toLowerCase().includes(termo));
+  onFiltroClienteChange(valor: string) {
+    this.filtroCliente = valor ?? '';
+    this.filtroCliente$.next();
   }
 
-  get gruposFiltrados(): GrupoCliente[] {
-    return this.grupos
-      .filter(grupo => {
-        if (!this.filtroCliente.trim()) return true;
-        return grupo.nomeCliente.toLowerCase().includes(this.filtroCliente.toLowerCase().trim());
-      })
+  /** Recalcula a lista exibida; chamado so quando um filtro ou os dados mudam */
+  aplicarFiltros() {
+    const termo = normalizarTexto(this.filtroCliente);
+
+    this.clientesSugeridos = this.grupos
+      .map(g => g.nomeCliente)
+      .filter(nome => !termo || normalizarTexto(nome).includes(termo));
+
+    this.gruposFiltrados = this.grupos
+      .filter(grupo => !termo || normalizarTexto(grupo.nomeCliente).includes(termo))
       .map(grupo => {
         let vendas = grupo.vendas;
 
@@ -222,6 +233,52 @@ export class HistoricoVendas implements OnInit {
     this.filtroAno = 0;
     this.filtroStatus = '';
     this.filtroCliente = '';
+    this.aplicarFiltros();
+  }
+
+  /** No dialogo de impressao, escolher "Salvar como PDF" */
+  exportarPdf() {
+    this.imprimirComBloco(this.tituloArquivo);
+  }
+
+  imprimir() {
+    this.imprimirComBloco();
+  }
+
+  /** O bloco de impressao so existe enquanto o dialogo esta aberto */
+  private imprimirComBloco(titulo?: string) {
+    imprimirPagina({
+      titulo,
+      antes: () => {
+        this.imprimindo = true;
+        this.cdr.detectChanges(); // o bloco precisa estar no DOM antes do window.print()
+      },
+      depois: () => {
+        this.imprimindo = false;
+      },
+    });
+  }
+
+  private readonly rotulosStatus: Record<string, string> = { PENDENTE: 'Pendente', PAGO: 'Quitado', CREDITO: 'Crédito' };
+
+  get filtrosTexto(): string {
+    const partes = [this.periodoTexto];
+    if (this.filtroCliente.trim()) partes.push(`Cliente: ${this.filtroCliente.trim()}`);
+    if (this.filtroAno) partes.push(`Ano: ${this.filtroAno}`);
+    if (this.filtroStatus) partes.push(`Status: ${this.rotulosStatus[this.filtroStatus]}`);
+    return partes.join(' · ');
+  }
+
+  private get tituloArquivo(): string {
+    const partes = ['Historico de Vendas', this.periodoTexto];
+    if (this.filtroCliente.trim()) partes.push(this.filtroCliente.trim());
+    if (this.filtroAno) partes.push(String(this.filtroAno));
+    if (this.filtroStatus) partes.push(this.rotulosStatus[this.filtroStatus]);
+    return partes.join(' ');
+  }
+
+  get totalGeral(): number {
+    return this.gruposFiltrados.reduce((acc, g) => acc + g.totalGasto, 0);
   }
 
   constructor(
@@ -230,10 +287,17 @@ export class HistoricoVendas implements OnInit {
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef,
     private periodoService: PeriodoService,
-    private router: Router
+    private router: Router,
+    private auth: AuthService
   ) { }
 
   ngOnInit() {
+    // Espera o usuario parar de digitar antes de filtrar
+    this.filtroCliente$.pipe(debounceTime(250)).subscribe(() => {
+      this.aplicarFiltros();
+      this.cdr.detectChanges();
+    });
+    this.isAdmin = this.auth.isAdmin();
     this.abrirContexto(true);
   }
 
@@ -263,12 +327,16 @@ export class HistoricoVendas implements OnInit {
     this.cdr.detectChanges();
     this.vendaService.listarTodas(this.periodo.inicio, this.periodo.fim).subscribe({
       next: vendas => {
+        this.totais.clear(); // os itens podem ter mudado (edicao de pedido, novo preco)
         this.grupos = this.agruparPorCliente(vendas);
+        this.calcularAnos();
+        this.aplicarFiltros();
         this.carregando = false;
         this.cdr.detectChanges();
       },
       error: () => {
         this.grupos = [];
+        this.aplicarFiltros();
         this.carregando = false;
         this.cdr.detectChanges();
       }
@@ -304,15 +372,22 @@ export class HistoricoVendas implements OnInit {
       if (grupo.totalPago > grupo.totalGasto) {
         grupo.totalCredito = Math.max(0, grupo.totalPago - grupo.totalGasto);
       }
-
+      // Mais antiga primeiro; data_venda vem em ISO ("2026-11-06T14:30:00"), entao a ordem de texto = ordem de data
+      grupo.vendas.sort((a, b) => a.data_venda.localeCompare(b.data_venda));
     }
 
     return Array.from(mapa.values())
       .sort((a, b) => b.totalGasto - a.totalGasto);
   }
 
+  /** Total com cache: o reduce dos itens roda uma vez por venda, nao a cada ciclo */
   totalVenda(venda: VendaResposta): number {
-    return venda.itens?.reduce((acc, i) => acc + i.quantidade * +i.precoUnitario, 0) ?? 0;
+    let total = this.totais.get(venda.id);
+    if (total === undefined) {
+      total = venda.itens?.reduce((acc, i) => acc + i.quantidade * +i.precoUnitario, 0) ?? 0;
+      this.totais.set(venda.id, total);
+    }
+    return total;
   }
 
   labelPagamento(forma: string): string {
@@ -387,6 +462,37 @@ export class HistoricoVendas implements OnInit {
       }
     });
   }
+
+  /** Exclui a venda (so admin); o backend devolve os itens ao estoque */
+  excluirVenda(venda: VendaResposta) {
+    const pago = venda.valorPago ?? 0;
+    const avisoPagamento = pago > 0
+      ? `<br><br><strong>Atenção:</strong> esta venda tem ${pago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} pagos, que deixarão de constar no histórico.`
+      : '';
+
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '420px',
+      data: {
+        titulo: 'Excluir venda',
+        mensagem: `Deseja excluir a venda #${venda.id} de "${venda.cliente.pessoa.nome}"? Os itens voltarão ao estoque.${avisoPagamento}`,
+      },
+      panelClass: 'confirm-dialog-panel',
+    });
+
+    ref.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.vendaService.excluir(venda.id).subscribe({
+        next: () => {
+          this.snackBar.open(`Venda #${venda.id} excluída. Itens devolvidos ao estoque.`, 'Fechar', { duration: 4000 });
+          this.carregar();
+        },
+        error: (err) => {
+          const mensagem = err.status === 403 ? 'Apenas administradores podem excluir vendas.' : 'Erro ao excluir venda.';
+          this.snackBar.open(mensagem, 'Fechar', { duration: 4000 });
+        },
+      });
+    });
+  }
 }
 
 // ── Diálogo de edição de itens da venda ──────────────────────────────────────
@@ -418,9 +524,9 @@ export class EdicaoItensDialog implements OnInit {
   produtosFiltrados: any;
 
   filtrarProdutos(item: any) {
-    const termo = item.produto.nome.toLowerCase();
+    const termo = normalizarTexto(item.produto.nome);
     this.produtosFiltrados = this.todosProdutos.filter(p =>
-      p.nome.toLowerCase().includes(termo)
+      normalizarTexto(p.nome).includes(termo)
     );
   }
   itensEdicao: any[];

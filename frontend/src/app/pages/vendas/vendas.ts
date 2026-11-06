@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule, MatIcon } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -17,7 +17,7 @@ import { ProdutoService } from '../../services/produto.service';
 import { VendaService } from '../../services/venda.service';
 import { ClienteService } from '../../services/cliente.service';
 import { AuthService } from '../../services/auth.service';
-import { formatarTelefone } from '../../utils/utils';
+import { formatarTelefone, normalizarTexto } from '../../utils/utils';
 import { Footer } from '../../footer/footer';
 
 interface ItemCarrinho {
@@ -130,7 +130,7 @@ export class VendaConfirmacaoDialog implements OnInit {
   templateUrl: './vendas.html',
   styleUrl: './vendas.css',
 })
-export class Vendas implements OnInit {
+export class Vendas implements OnInit, AfterViewInit {
   formatarTelefone = formatarTelefone;
   produtos: Produto[] = [];
   grupos: GrupoCategoria[] = [];
@@ -140,6 +140,7 @@ export class Vendas implements OnInit {
   carrinho: ItemCarrinho[] = [];
   clienteSelecionado: Cliente | null = null;
   clienteSearchText = '';
+  @ViewChild('campoCliente') campoCliente?: ElementRef<HTMLInputElement>;
   carregando = true;
 
   colunasCarrinho = ['produto', 'preco', 'quantidade', 'subtotal', 'acoes'];
@@ -151,23 +152,11 @@ export class Vendas implements OnInit {
     private auth: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
-    this.produtoService.listar().subscribe({
-      next: res => {
-        this.produtos = res;
-        this.grupos = this.agruparPorCategoria(res);
-        this.grupoSelecionado = this.grupos[0];
-        this.carregando = false;
-      },
-      error: () => {
-        this.snackBar.open('Erro ao carregar produtos.', 'Fechar', { duration: 3000 });
-        this.carregando = false;
-      }
-    });
+    this.carregarProdutos();
     this.clienteService.listar().subscribe({
       next: res => {
         this.clientes = res;
@@ -175,6 +164,14 @@ export class Vendas implements OnInit {
       },
       error: () => this.snackBar.open('Erro ao carregar clientes.', 'Fechar', { duration: 3000 })
     });
+  }
+
+   ngAfterViewInit(): void {
+    this.focarCliente();
+  }
+
+  private focarCliente() {
+    setTimeout(() => this.campoCliente?.nativeElement.focus());
   }
 
   /** "Todas": uma seção por categoria; categoria escolhida no filtro: só a seção dela */
@@ -201,9 +198,9 @@ export class Vendas implements OnInit {
   }
 
   filtrarClientes(valor: string) {
-    const filtro = (valor ?? '').toLowerCase();
+    const filtro = normalizarTexto(valor);
     this.filteredClientes = this.clientes.filter(c =>
-      c.pessoa.nome.toLowerCase().includes(filtro)
+      normalizarTexto(c.pessoa.nome).includes(filtro)
     );
     // Editou o nome depois de escolher: o cliente deixa de valer e os produtos voltam a ficar bloqueados
     if (this.clienteSelecionado && valor !== this.clienteSelecionado.pessoa.nome) this.clienteSelecionado = null;
@@ -277,13 +274,41 @@ export class Vendas implements OnInit {
       this.vendaService.realizarVenda(venda).subscribe({
         next: () => {
           const totalFormatado = this.total().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          this.snackBar.open(`Venda registrada! Total: ${totalFormatado}`, 'Fechar', { duration: 4000 });
-          this.router.navigate(['/home']);
+          this.snackBar.open(
+            `Venda registrada para ${this.clienteSelecionado?.pessoa?.nome}! 
+            Total: ${totalFormatado}`, 'Fechar', { duration: 5000 }
+          );
+          this.novaVenda();
         },
         error: () => {
           this.snackBar.open('Erro ao registrar venda.', 'Fechar', { duration: 3000 });
         }
       });
+    });
+  }
+  novaVenda() {
+    this.carrinho = [];
+    this.clienteSelecionado = null;
+    this.clienteSearchText = '';
+    this.filteredClientes = this.clientes;
+    this.carregarProdutos();
+    this.focarCliente();
+  }
+  carregarProdutos() {
+    const categoriaAtual = this.grupoSelecionado?.nome;
+    this.produtoService.listar().subscribe({
+      next: produtos => {
+        this.produtos = produtos;
+        this.grupos = this.agruparPorCategoria(produtos);
+        this.grupoSelecionado = this.grupos.find(g => g.nome === categoriaAtual) ?? this.grupos[0];
+        this.carregando = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.snackBar.open('Erro ao carregar produtos.', 'Fechar', { duration: 4000 });
+        this.carregando = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 

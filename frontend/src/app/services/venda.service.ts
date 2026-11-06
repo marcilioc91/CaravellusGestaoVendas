@@ -30,6 +30,10 @@ atualizarItens(vendaId: number, dados: { produtos: any[] }) {
     return this.http.patch(`${this.api}/${id}/pagamento`, dados);
   }
 
+  excluir(id: number) {
+    return this.http.delete(`${this.api}/${id}`);
+  }
+
   private periodo(inicio?: string, fim?: string) {
     let params = new HttpParams();
     if (inicio) params = params.set('inicio', inicio);

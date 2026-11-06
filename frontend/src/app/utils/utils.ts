@@ -63,3 +63,31 @@ export async function reduzirImagem(
     canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Falha ao converter a imagem.'))), 'image/jpeg', 0.85)
   );
 }
+
+export function normalizarTexto(texto?: string | null): string {
+  return (texto ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+}
+
+export interface OpcoesImpressao {
+  titulo?: string;
+  antes?: () => void;
+  depois?: () => void;
+}
+
+export function imprimirPagina(opcoes: OpcoesImpressao = {}): void {
+    const tituloAnterior = document.title;
+    if (opcoes.titulo)
+      document.title = nomeArquivoValido(opcoes.titulo);
+    try {
+      opcoes.antes?.();
+      window.print();
+    } finally {
+      opcoes.depois?.();
+      document.title = tituloAnterior;
+    }
+  }
+
+function nomeArquivoValido(nome: string): string {
+  return nome.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
+}
+
