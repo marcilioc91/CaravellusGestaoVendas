@@ -1,4 +1,5 @@
 :host {
+    position: relative;
     height: 100vh;
     display: flex;
 
@@ -51,4 +52,9 @@ h2 {
     top: 24px;
     left: 50%;
     transform: translateX(-50%);
+}
+
+/* Texto claro: o fundo do login e a imagem escurecida, nos dois temas */
+.login-rodape {
+    --rodape-cor: rgba(255, 255, 255, 0.85);
 }

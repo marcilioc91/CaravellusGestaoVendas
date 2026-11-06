@@ -15,6 +15,7 @@ import { TrocarSenhaDialog, TrocarSenhaDados } from './trocar-senha-dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
+import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,8 @@ import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
     MatDividerModule,
     MatIconModule,
     MatDialogModule,
-    TemaToggle
+    TemaToggle,
+    RodapeSistema
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',

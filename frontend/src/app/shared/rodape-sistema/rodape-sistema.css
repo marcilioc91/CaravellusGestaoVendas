@@ -1,0 +1,11 @@
+/* Fica no pé do ancestral com position: relative (.home-container, :host do login), centralizado */
+.rodape-sistema {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  text-align: center;
+  font-size: 12px;
+  /* --rodape-cor: a tela pode trocar a cor (ex.: texto claro sobre o fundo escuro do login) */
+  color: var(--rodape-cor, var(--texto-suave));
+}

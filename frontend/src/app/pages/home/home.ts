@@ -5,11 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
+import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, TemaToggle],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, TemaToggle, RodapeSistema],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
