@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService, CadastroRequest } from '../../services/auth.service';
 import { ClienteService } from '../../services/cliente.service';
 import { Cliente, PessoaSemelhante } from '../../models/cliente';
-import { cpfValido, emailValido, formatarTelefone } from '../../utils/utils';
+import { cpfValido, emailValido, formatarTelefone, SENHA_TAMANHO_MINIMO, senhaValida } from '../../utils/utils';
 
 export interface CadastroModalData {
   modo: 'usuario' | 'cliente';
@@ -51,6 +51,8 @@ export class CadastroModal {
   /** Cadastros parecidos apontados pelo backend: grava só depois que a pessoa decide */
   semelhantes: PessoaSemelhante[] = [];
   formatarTelefone = formatarTelefone;
+  senhaValida = senhaValida;
+  senhaMinima = SENHA_TAMANHO_MINIMO;
   private cpfConsultado = '';
 
   validarCpf() {

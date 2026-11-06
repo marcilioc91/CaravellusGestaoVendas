@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../services/auth.service';
 import { Usuario } from '../../models/usuario';
+import { SENHA_TAMANHO_MINIMO, senhaValida } from '../../utils/utils';
 
 // ── Diálogo de reset de senha ─────────────────────────────────────────────────
 @Component({
@@ -25,6 +26,7 @@ export class ResetSenhaDialog {
   novaSenha = '';
   ocultarSenha = true;
   erro = '';
+  senhaMinima = SENHA_TAMANHO_MINIMO;
 
   constructor(
     private dialogRef: MatDialogRef<ResetSenhaDialog>,
@@ -34,6 +36,10 @@ export class ResetSenhaDialog {
   confirmar() {
     if (!this.novaSenha.trim()) {
       this.erro = 'Informe a nova senha.';
+      return;
+    }
+    if (!senhaValida(this.novaSenha)) {
+      this.erro = `A senha deve ter no mínimo ${SENHA_TAMANHO_MINIMO} caracteres.`;
       return;
     }
     this.dialogRef.close(this.novaSenha);

@@ -4,6 +4,7 @@ import com.caravellus.backend.entity.RecuperacaoSenha;
 import com.caravellus.backend.entity.Usuario;
 import com.caravellus.backend.repository.RecuperacaoSenhaRepository;
 import com.caravellus.backend.repository.UsuarioRepository;
+import com.caravellus.backend.util.ValidacaoUtil;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,9 +108,7 @@ public class RecuperacaoSenhaService {
     /** Valida o código e define a nova senha. Tentativas erradas ficam gravadas (sem rollback). */
     @Transactional(noRollbackFor = IllegalArgumentException.class)
     public void redefinir(String identificador, String codigo, String novaSenha) {
-        if (novaSenha == null || novaSenha.isBlank()) {
-            throw new IllegalArgumentException("A nova senha não pode ser vazia.");
-        }
+        ValidacaoUtil.validarSenha(novaSenha);
 
         RecuperacaoSenha rec = conferirCodigo(identificador, codigo);
         Usuario usuario = rec.getUsuario();

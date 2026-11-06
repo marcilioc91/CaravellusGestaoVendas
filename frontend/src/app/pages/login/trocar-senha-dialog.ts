@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../services/auth.service';
+import { SENHA_TAMANHO_MINIMO, senhaValida } from '../../utils/utils';
 
 export interface TrocarSenhaDados {
   login: string;
@@ -28,6 +29,8 @@ export class TrocarSenhaDialog {
   ocultarSenha = true;
   enviando = false;
   erro = '';
+  senhaValida = senhaValida;
+  senhaMinima = SENHA_TAMANHO_MINIMO;
 
   constructor(
     private auth: AuthService,
@@ -37,7 +40,7 @@ export class TrocarSenhaDialog {
   ) {}
 
   podeSalvar(): boolean {
-    return !!this.novaSenha && this.novaSenha === this.confirmacaoSenha && this.novaSenha !== this.data.senhaAtual;
+    return senhaValida(this.novaSenha) && this.novaSenha === this.confirmacaoSenha && this.novaSenha !== this.data.senhaAtual;
   }
 
   salvar() {

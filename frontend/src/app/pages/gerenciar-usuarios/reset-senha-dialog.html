@@ -7,6 +7,7 @@
         <button matSuffix mat-icon-button (click)="ocultarSenha = !ocultarSenha" type="button">
             <mat-icon>{{ ocultarSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
+        <mat-hint>Mínimo de {{ senhaMinima }} caracteres</mat-hint>
     </mat-form-field>
     @if (erro) {
     <p class="reset-erro">{{ erro }}</p>

@@ -16,6 +16,8 @@
         </button>
         @if (novaSenha && novaSenha === data.senhaAtual) {
         <mat-hint class="rec-hint-erro">A nova senha deve ser diferente da atual.</mat-hint>
+        } @else {
+        <mat-hint [class.rec-hint-erro]="novaSenha && !senhaValida(novaSenha)">Mínimo de {{ senhaMinima }} caracteres</mat-hint>
         }
     </mat-form-field>
 

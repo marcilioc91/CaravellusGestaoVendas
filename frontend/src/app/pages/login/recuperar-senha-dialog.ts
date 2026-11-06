@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
+import { SENHA_TAMANHO_MINIMO, senhaValida } from '../../utils/utils';
 
 // ── Diálogo "Esqueci minha senha": 1) solicitar código  2) validar código  3) nova senha ──
 @Component({
@@ -36,6 +37,8 @@ export class RecuperarSenhaDialog {
   enviando = false;
   erro = '';
   aviso = '';
+  senhaValida = senhaValida;
+  senhaMinima = SENHA_TAMANHO_MINIMO;
 
   @ViewChildren('digito') private caixas!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -150,7 +153,7 @@ export class RecuperarSenhaDialog {
   }
 
   podeRedefinir(): boolean {
-    return !!this.novaSenha && this.novaSenha === this.confirmacaoSenha;
+    return senhaValida(this.novaSenha) && this.novaSenha === this.confirmacaoSenha;
   }
 
   voltar() {

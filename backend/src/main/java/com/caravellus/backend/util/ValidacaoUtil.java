@@ -32,4 +32,17 @@ public class ValidacaoUtil {
         if (email == null || email.isBlank()) return false;
         return EMAIL_PATTERN.matcher(email).matches();
     }
+
+    /** Tamanho mínimo de toda senha nova (cadastro, troca, recuperação e reset pelo admin); o front usa o mesmo valor */
+    public static final int SENHA_TAMANHO_MINIMO = 6;
+
+    /** Lança IllegalArgumentException se a senha estiver vazia ou tiver menos que SENHA_TAMANHO_MINIMO caracteres */
+    public static void validarSenha(String senha) {
+        if (senha == null || senha.isBlank()) {
+            throw new IllegalArgumentException("A senha não pode ser vazia.");
+        }
+        if (senha.length() < SENHA_TAMANHO_MINIMO) {
+            throw new IllegalArgumentException("A senha deve ter no mínimo " + SENHA_TAMANHO_MINIMO + " caracteres.");
+        }
+    }
 }

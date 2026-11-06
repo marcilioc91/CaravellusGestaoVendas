@@ -43,9 +43,7 @@ public class UsuarioService {
     }
 
     public void resetSenha(Long id, String novaSenha) {
-        if (novaSenha == null || novaSenha.isBlank()) {
-            throw new IllegalArgumentException("A nova senha não pode ser vazia.");
-        }
+        ValidacaoUtil.validarSenha(novaSenha);
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
         usuario.setSenha(passwordEncoder.encode(novaSenha));
@@ -58,9 +56,7 @@ public class UsuarioService {
         if (usuario == null) {
             throw new IllegalArgumentException("Senha atual incorreta.");
         }
-        if (novaSenha == null || novaSenha.isBlank()) {
-            throw new IllegalArgumentException("A nova senha não pode ser vazia.");
-        }
+        ValidacaoUtil.validarSenha(novaSenha);
         if (passwordEncoder.matches(novaSenha, usuario.getSenha())) {
             throw new IllegalArgumentException("A nova senha deve ser diferente da senha atual.");
         }
@@ -143,6 +139,7 @@ public class UsuarioService {
         if (!ValidacaoUtil.emailValido(dto.getEmail())) {
             throw new IllegalArgumentException("E-mail inválido.");
         }
+        ValidacaoUtil.validarSenha(dto.getSenha());
 
         boolean promocao = existente != null;
         if (!promocao && !dto.isConfirmarDuplicidade()) {

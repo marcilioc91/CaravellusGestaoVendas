@@ -33,6 +33,13 @@ export function emailValido(email: string): boolean {
   return /^[\w+.%-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(email);
 }
 
+/** Tamanho mínimo de toda senha nova; o backend aplica a mesma regra (ValidacaoUtil.SENHA_TAMANHO_MINIMO) */
+export const SENHA_TAMANHO_MINIMO = 6;
+
+export function senhaValida(senha?: string | null): boolean {
+  return !!senha?.trim() && senha.length >= SENHA_TAMANHO_MINIMO;
+}
+
 /** Formato padrão das imagens de produto (4:3, o mesmo dos cartões do catálogo) */
 export const IMAGEM_PRODUTO_LARGURA = 800;
 export const IMAGEM_PRODUTO_ALTURA = 600;
