@@ -14,15 +14,22 @@
       <mat-icon>date_range</mat-icon>
       CONTEXTO
     </button>
-    <button mat-stroked-button class="nao-imprimir" [disabled]="!itens.length" (click)="exportarPdf()">
+    <button mat-stroked-button class="nao-imprimir" [disabled]="exportandoPdf || !itens.length" (click)="exportarPdf()">
       <mat-icon>picture_as_pdf</mat-icon>
       Exportar PDF
     </button>
-    <button mat-stroked-button class="nao-imprimir" [disabled]="!itens.length" (click)="imprimir()">
+    <button mat-stroked-button class="nao-imprimir" [disabled]="exportandoPdf || !itens.length" (click)="imprimir()">
       <mat-icon>print</mat-icon>
       Imprimir A4
     </button>
   </div>
+
+  @if (exportandoPdf) {
+  <div class="barra-exportacao nao-imprimir">
+    <span>Gerando PDF...</span>
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+  }
 
   @if (carregando && periodo) {
   <div class="relatorio-loading">

@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -30,6 +30,34 @@ function startBackend() {
   }
 }
 
+let destinoPdf = null; // escolhido na janela "Salvar como"
+let ultimoPdf = null;  // ultimo PDF gerado (botao "Abrir" da mensagem)
+
+function registrarExportacaoPdf() {
+  ipcMain.handle('pdf:escolher-destino', async (event, nomeSugerido) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const { canceled, filePath } = await dialog.showSaveDialog(win, {
+      title: 'Exportar PDF',
+      defaultPath: path.join(app.getPath('documents'), `${nomeSugerido}.pdf`),
+      filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    });
+    destinoPdf = canceled ? null : filePath;
+    return !!destinoPdf;
+  });
+
+  ipcMain.handle('pdf:gerar', async (event) => {
+    if (!destinoPdf) throw new Error('Nenhum destino escolhido.');
+    // Usa o CSS de @media print e o tamanho de @page, como no window.print()
+    const dados = await event.sender.printToPDF({ preferCSSPageSize: true, printBackground: true });
+    await fs.promises.writeFile(destinoPdf, dados);
+    ultimoPdf = destinoPdf;
+    destinoPdf = null;
+    return ultimoPdf;
+  });
+
+  ipcMain.handle('pdf:abrir-ultimo', () => (ultimoPdf ? shell.openPath(ultimoPdf) : ''));
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -38,6 +66,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     }
   });
 
@@ -46,6 +75,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   startBackend();
+  registrarExportacaoPdf();
   createWindow();
 });
 

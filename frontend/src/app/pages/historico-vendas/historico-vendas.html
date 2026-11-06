@@ -7,11 +7,11 @@
       <mat-icon>date_range</mat-icon>
       CONTEXTO
     </button>
-    <button mat-stroked-button [disabled]="carregando || !gruposFiltrados.length" (click)="exportarPdf()">
+    <button mat-stroked-button [disabled]="carregando || exportandoPdf || !gruposFiltrados.length" (click)="exportarPdf()">
       <mat-icon>picture_as_pdf</mat-icon>
       Exportar PDF
     </button>
-    <button mat-stroked-button [disabled]="carregando || !gruposFiltrados.length" (click)="imprimir()">
+    <button mat-stroked-button [disabled]="carregando || exportandoPdf || !gruposFiltrados.length" (click)="imprimir()">
       <mat-icon>print</mat-icon>
       Imprimir A4
     </button>
@@ -20,6 +20,13 @@
       Voltar
     </button>
   </div>
+
+  @if (exportandoPdf) {
+  <div class="barra-exportacao">
+    <span>Gerando PDF...</span>
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+  }
 
   <div class="filtros-bar">
     <mat-form-field appearance="outline" class="filtro-campo">

@@ -11,6 +11,16 @@
   margin-bottom: 28px;
 }
 
+/* Barra exibida enquanto o PDF e gerado (exportarPdf) */
+.barra-exportacao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
 .relatorio-titulo {
   display: flex;
   align-items: center;

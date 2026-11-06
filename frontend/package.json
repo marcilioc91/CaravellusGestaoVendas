@@ -59,6 +59,7 @@
     "files": [
       "dist/caravellus-frontend/**/*",
       "main.js",
+      "preload.js",
       "package.json"
     ],
     "extraResources": [

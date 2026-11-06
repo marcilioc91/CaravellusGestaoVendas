@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, forkJoin } from 'rxjs';
 import { VendaResposta } from '../../models/venda';
@@ -19,7 +20,7 @@ import { VendaService } from '../../services/venda.service';
 import { ProdutoService } from '../../services/produto.service';
 import { Periodo, PeriodoService } from '../../services/periodo.service';
 import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
-import { imprimirPagina, normalizarTexto } from '../../utils/utils';
+import { abrirUltimoPdf, imprimirPagina, normalizarTexto, salvarPdf } from '../../utils/utils';
 import { AuthService } from '../../services/auth.service';
 import { ConfirmDialog } from '../clientes/clientes';
 
@@ -135,6 +136,7 @@ export class PagamentoTotalDialog {
     MatTooltipModule,
     MatAutocompleteModule,
     MatInputModule,
+    MatProgressBarModule,
     FormsModule,
   ],
   templateUrl: './historico-vendas.html',
@@ -150,6 +152,7 @@ export class HistoricoVendas implements OnInit {
   filtroStatus = '';
   filtroCliente = '';
   imprimindo = false;
+  exportandoPdf = false;
   isAdmin = false;
 
   get periodoTexto(): string {
@@ -236,9 +239,35 @@ export class HistoricoVendas implements OnInit {
     this.aplicarFiltros();
   }
 
-  /** No dialogo de impressao, escolher "Salvar como PDF" */
-  exportarPdf() {
-    this.imprimirComBloco(this.tituloArquivo);
+  /** No Electron: "Salvar como" + barra de progresso + mensagem de sucesso */
+  async exportarPdf() {
+    try {
+      const resultado = await salvarPdf({
+        titulo: this.tituloArquivo,
+        aoIniciar: () => {
+          this.exportandoPdf = true;
+          this.cdr.detectChanges();
+        },
+        antes: () => {
+          this.imprimindo = true;
+          this.cdr.detectChanges();
+        },
+        depois: () => {
+          this.imprimindo = false;
+          this.exportandoPdf = false;
+          this.cdr.detectChanges();
+        },
+      });
+
+      if (resultado.status === 'salvo') {
+        this.snackBar
+          .open('PDF exportado com sucesso!', 'Abrir', { duration: 6000 })
+          .onAction()
+          .subscribe(() => abrirUltimoPdf());
+      }
+    } catch {
+      this.snackBar.open('Erro ao exportar o PDF. Se o arquivo estiver aberto, feche-o e tente de novo.', 'Fechar', { duration: 5000 });
+    }
   }
 
   imprimir() {

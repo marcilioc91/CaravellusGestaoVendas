@@ -94,6 +94,64 @@ export function imprimirPagina(opcoes: OpcoesImpressao = {}): void {
     }
   }
 
+/** Funcoes expostas pelo preload.js (so existem dentro do Electron) */
+export interface PonteElectron {
+  escolherDestinoPdf(nomeSugerido: string): Promise<boolean>;
+  gerarPdf(): Promise<string>;
+  abrirUltimoPdf(): Promise<string>;
+}
+
+declare global {
+  interface Window {
+    caravellus?: PonteElectron;
+  }
+}
+
+export type ResultadoPdf =
+  | { status: 'salvo'; caminho: string }
+  | { status: 'cancelado' }
+  | { status: 'navegador' };
+
+export interface OpcoesExportacao extends OpcoesImpressao {
+  titulo: string;
+  /** Chamado depois que o usuario escolhe onde salvar: hora de mostrar a barra */
+  aoIniciar?: () => void;
+}
+
+/**
+ * Exporta a tela em PDF. No Electron: "Salvar como" + geracao com progresso.
+ * No navegador (ng serve): cai no dialogo de impressao, como antes.
+ */
+export async function salvarPdf(opcoes: OpcoesExportacao): Promise<ResultadoPdf> {
+  const ponte = window.caravellus;
+  if (!ponte) {
+    imprimirPagina(opcoes);
+    return { status: 'navegador' };
+  }
+
+  if (!(await ponte.escolherDestinoPdf(nomeArquivoValido(opcoes.titulo))))
+    return { status: 'cancelado' };
+
+  opcoes.aoIniciar?.();
+  try {
+    opcoes.antes?.();
+    await esperarPintura(); // a barra e o bloco de impressao precisam estar na tela
+    const caminho = await ponte.gerarPdf();
+    return { status: 'salvo', caminho };
+  } finally {
+    opcoes.depois?.();
+  }
+}
+
+export function abrirUltimoPdf(): void {
+  window.caravellus?.abrirUltimoPdf();
+}
+
+/** Espera o navegador desenhar a tela (dois quadros) */
+function esperarPintura(): Promise<void> {
+  return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+}
+
 function nomeArquivoValido(nome: string): string {
   return nome.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
 }

@@ -11,7 +11,9 @@ import { VendaService } from '../../services/venda.service';
 import { RelatorioInventarioItem } from '../../models/venda';
 import { Periodo, PeriodoService } from '../../services/periodo.service';
 import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
-import { imprimirPagina } from '../../utils/utils';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { abrirUltimoPdf, imprimirPagina, salvarPdf } from '../../utils/utils';
 
 @Component({
   selector: 'app-relatorio-inventario',
@@ -25,6 +27,7 @@ import { imprimirPagina } from '../../utils/utils';
     MatProgressSpinnerModule,
     MatCardModule,
     MatDialogModule,
+    MatProgressBarModule,
   ],
   templateUrl: './relatorio-inventario.html',
   styleUrl: './relatorio-inventario.css',
@@ -37,12 +40,14 @@ export class RelatorioInventario implements OnInit {
   totalReceita = 0;
   totalCusto = 0;
   totalLucro = 0;
+  exportandoPdf = false;
 
   constructor(
     private vendaService: VendaService,
     private periodoService: PeriodoService,
     private dialog: MatDialog,
     private router: Router,
+    private snackBar: MatSnackBar,
     private cdRef: ChangeDetectorRef
   ) {}
 
@@ -80,8 +85,30 @@ export class RelatorioInventario implements OnInit {
     imprimirPagina();
   }
 
-  exportarPdf() {
-    imprimirPagina({ titulo: `Relatorio de Inventario ${this.periodoTexto}` });
+  /** No Electron: "Salvar como" + barra de progresso + mensagem de sucesso */
+  async exportarPdf() {
+    try {
+      const resultado = await salvarPdf({
+        titulo: `Relatorio de Inventario ${this.periodoTexto}`,
+        aoIniciar: () => {
+          this.exportandoPdf = true;
+          this.cdRef.detectChanges();
+        },
+        depois: () => {
+          this.exportandoPdf = false;
+          this.cdRef.detectChanges();
+        },
+      });
+
+      if (resultado.status === 'salvo') {
+        this.snackBar
+          .open('PDF exportado com sucesso!', 'Abrir', { duration: 6000 })
+          .onAction()
+          .subscribe(() => abrirUltimoPdf());
+      }
+    } catch {
+      this.snackBar.open('Erro ao exportar o PDF. Se o arquivo estiver aberto, feche-o e tente de novo.', 'Fechar', { duration: 5000 });
+    }
   }
 
   private carregar() {
