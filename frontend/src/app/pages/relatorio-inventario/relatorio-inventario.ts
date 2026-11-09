@@ -14,6 +14,11 @@ import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { abrirUltimoPdf, imprimirPagina, salvarPdf } from '../../utils/utils';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { RelatorioGraficos } from './relatorio-graficos';
+
+type Visao = 'tabela' | 'graficos';
+const CHAVE_VISAO = 'caravellus.relatorio.visao';
 
 @Component({
   selector: 'app-relatorio-inventario',
@@ -28,6 +33,8 @@ import { abrirUltimoPdf, imprimirPagina, salvarPdf } from '../../utils/utils';
     MatCardModule,
     MatDialogModule,
     MatProgressBarModule,
+    MatButtonToggleModule,
+    RelatorioGraficos,
   ],
   templateUrl: './relatorio-inventario.html',
   styleUrl: './relatorio-inventario.css',
@@ -41,6 +48,8 @@ export class RelatorioInventario implements OnInit {
   totalCusto = 0;
   totalLucro = 0;
   exportandoPdf = false;
+  /** Tabela (relatório completo) ou gráficos; a escolha fica salva neste computador */
+  visao: Visao = lerVisao();
 
   constructor(
     private vendaService: VendaService,
@@ -81,6 +90,15 @@ export class RelatorioInventario implements OnInit {
     });
   }
 
+  trocarVisao(visao: Visao) {
+    this.visao = visao;
+    try {
+      localStorage.setItem(CHAVE_VISAO, visao);
+    } catch {
+      // Sem acesso ao armazenamento local: a escolha vale só até fechar a tela
+    }
+  }
+
   imprimir() {
     imprimirPagina();
   }
@@ -89,7 +107,7 @@ export class RelatorioInventario implements OnInit {
   async exportarPdf() {
     try {
       const resultado = await salvarPdf({
-        titulo: `Relatorio de Inventario ${this.periodoTexto}`,
+        titulo: `Desempenho de Vendas ${this.periodoTexto}`,
         aoIniciar: () => {
           this.exportandoPdf = true;
           this.cdRef.detectChanges();
@@ -116,7 +134,9 @@ export class RelatorioInventario implements OnInit {
     this.cdRef.detectChanges();
     this.vendaService.getRelatorioInventario(this.periodo!.inicio, this.periodo!.fim).subscribe({
       next: (dados) => {
-        this.itens = dados;
+        // Mais vendidos primeiro; empate: ordem alfabética do produto
+        this.itens = [...dados].sort((a, b) =>
+          (b.quantidadeVendida ?? 0) - (a.quantidadeVendida ?? 0) || a.nomeProduto.localeCompare(b.nomeProduto));
 
         this.totalReceita = this.itens.reduce((s, i) => s + (i.totalReceita ?? 0), 0);
         this.totalCusto = this.itens.reduce((s, i) => s + (i.totalCusto ?? 0), 0);
@@ -126,7 +146,7 @@ export class RelatorioInventario implements OnInit {
         this.cdRef.detectChanges();
       },
       error: (err) => {
-        console.error('Erro ao carregar relatório de inventário:', err);
+        console.error('Erro ao carregar o desempenho de vendas:', err);
         this.itens = [];
         this.carregando = false;
         this.cdRef.detectChanges();
@@ -139,5 +159,13 @@ export class RelatorioInventario implements OnInit {
   }
   trackByProduto(index: number, item: RelatorioInventarioItem) {
     return item.nomeProduto;
+  }
+}
+
+function lerVisao(): Visao {
+  try {
+    return localStorage.getItem(CHAVE_VISAO) === 'graficos' ? 'graficos' : 'tabela';
+  } catch {
+    return 'tabela';
   }
 }

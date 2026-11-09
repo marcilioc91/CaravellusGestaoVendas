@@ -17,17 +17,12 @@ import { ProdutoService } from '../../services/produto.service';
 import { VendaService } from '../../services/venda.service';
 import { ClienteService } from '../../services/cliente.service';
 import { AuthService } from '../../services/auth.service';
-import { formatarTelefone, normalizarTexto } from '../../utils/utils';
+import { formatarTelefone, normalizarTexto, agruparPorCategoria, GrupoCategoria, secoesDoFiltro } from '../../utils/utils';
 import { Footer } from '../../footer/footer';
 
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
-}
-
-interface GrupoCategoria {
-  nome: string;
-  produtos: Produto[];
 }
 
 interface DadosConfirmacao {
@@ -176,25 +171,7 @@ export class Vendas implements OnInit, AfterViewInit {
 
   /** "Todas": uma seção por categoria; categoria escolhida no filtro: só a seção dela */
   secoesVisiveis(): GrupoCategoria[] {
-    if (!this.grupoSelecionado) return [];
-    return this.grupoSelecionado === this.grupos[0] ? this.grupos.slice(1) : [this.grupoSelecionado];
-  }
-
-  private agruparPorCategoria(produtos: Produto[]): GrupoCategoria[] {
-    const mapa = new Map<number, GrupoCategoria>();
-    const semCategoria: Produto[] = [];
-    for (const p of produtos) {
-      const cat = p.categoria;
-      if (!cat?.id) {
-        semCategoria.push(p);
-        continue;
-      }
-      if (!mapa.has(cat.id)) mapa.set(cat.id, { nome: cat.nome, produtos: [] });
-      mapa.get(cat.id)!.produtos.push(p);
-    }
-    const grupos = [...mapa.values()].sort((a, b) => a.nome.localeCompare(b.nome));
-    if (semCategoria.length > 0) grupos.push({ nome: 'Sem categoria', produtos: semCategoria });
-    return [{ nome: 'Todas', produtos: grupos.flatMap(g => g.produtos) }, ...grupos];
+    return secoesDoFiltro(this.grupos, this.grupoSelecionado);
   }
 
   filtrarClientes(valor: string) {
@@ -261,8 +238,6 @@ export class Vendas implements OnInit, AfterViewInit {
 
       const venda = {
         clienteId: this.clienteSelecionado!.id!,
-        usuarioId: usuario.id,
-        usuarioNome: usuario?.pessoa?.nome ?? usuario?.usuarioLogin ?? '',
         produtos: this.carrinho.map(i => ({
           produtoId: i.produto.id!,
           quantidade: i.quantidade
@@ -280,8 +255,10 @@ export class Vendas implements OnInit, AfterViewInit {
           );
           this.novaVenda();
         },
-        error: () => {
-          this.snackBar.open('Erro ao registrar venda.', 'Fechar', { duration: 3000 });
+        error: (err) => {
+          const mensagem = typeof err?.error === 'string' && err.error ? err.error : 'Erro ao registrar venda.';
+          this.snackBar.open(mensagem, 'Fechar', { duration: 5000 });
+          this.carregarProdutos();
         }
       });
     });
@@ -299,7 +276,7 @@ export class Vendas implements OnInit, AfterViewInit {
     this.produtoService.listar().subscribe({
       next: produtos => {
         this.produtos = produtos;
-        this.grupos = this.agruparPorCategoria(produtos);
+        this.grupos = agruparPorCategoria(produtos);
         this.grupoSelecionado = this.grupos.find(g => g.nome === categoriaAtual) ?? this.grupos[0];
         this.carregando = false;
         this.cdr.detectChanges();

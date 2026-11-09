@@ -1,128 +1,67 @@
-<div class="home-container">
+<div class="home" [class.entrada]="entrada">
 
-  <!-- TOPO -->
-  <div class="home-topbar">
-    <app-tema-toggle />
-    <span class="home-usuario">
-      <mat-icon>account_circle</mat-icon>
-      Bem vindo(a), {{ nomeUsuario }}
-    </span>
-    <button mat-stroked-button color="warn" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      Sair
+  <!-- MENU LATERAL: todas as operações, por seção -->
+  <nav class="home-menu" aria-label="Operações">
+    <div class="home-logo">
+      <app-logo />
+      Caravellus
+    </div>
+
+    <button type="button" class="home-link ativo" aria-current="page">
+      <mat-icon>home</mat-icon>
+      Início
     </button>
-  </div>
 
-  <h2 class="home-titulo">Selecione uma operação:</h2>
+    @for (secao of secoes; track secao.titulo) {
+    <div class="home-menu-secao">{{ secao.titulo }}</div>
+    @for (op of secao.operacoes; track op.rota) {
+    <button type="button" class="home-link" [title]="op.descricao" (click)="ir(op)">
+      <mat-icon>{{ op.icone }}</mat-icon>
+      {{ op.titulo }}
+    </button>
+    }
+    }
+  </nav>
 
-  <!-- MOVIMENTAÇÕES -->
-  <div class="home-section">
-    <h3 class="home-section-title">
-      <mat-icon>trending_up</mat-icon>
-      Movimentações
-    </h3>
-
-    <div class="home-cards">
-      <mat-card class="home-card" (click)="irParaNovaVenda()">
-        <mat-card-content>
-          <mat-icon class="home-icon">point_of_sale</mat-icon>
-          <h3>Nova Venda</h3>
-          <p>Registrar uma nova venda</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="home-card" (click)="irParaHistoricoVendas()">
-        <mat-card-content>
-          <mat-icon class="home-icon">receipt_long</mat-icon>
-          <h3>Histórico de Vendas</h3>
-          <p>Visualizar todas as vendas realizadas</p>
-        </mat-card-content>
-      </mat-card>
+  <!-- PAINEL -->
+  <main class="home-painel">
+    <div class="home-topbar">
+      <app-tema-toggle />
+      <span class="home-usuario">
+        <mat-icon>account_circle</mat-icon>
+        {{ nomeUsuario }}
+      </span>
+      <button mat-stroked-button color="warn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Sair
+      </button>
     </div>
-  </div>
 
-  <!-- CADASTROS -->
-  <div class="home-section">
-    <h3 class="home-section-title">
-      <mat-icon>settings</mat-icon>
-      Cadastros
-    </h3>
+    <h1 class="home-saudacao home-anima" style="--ordem: 0">Olá{{ primeiroNome ? ', ' + primeiroNome : '' }}!</h1>
+    <p class="home-sub home-anima" style="--ordem: 1">O que você quer fazer agora?</p>
 
-    <div class="home-cards">
-      <mat-card class="home-card" (click)="irParaCadastroCliente()">
-        <mat-card-content>
-          <mat-icon class="home-icon">person_add</mat-icon>
-          <h3>Cliente</h3>
-          <p>Gerenciar clientes e usuários</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="home-card" (click)="irParaCadastroProduto()">
-        <mat-card-content>
-          <mat-icon class="home-icon">inventory_2</mat-icon>
-          <h3>Produto</h3>
-          <p>Gerenciar produtos e estoque</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="home-card" (click)="irParaCadastroCategoria()">
-        <mat-card-content>
-          <mat-icon class="home-icon">category</mat-icon>
-          <h3>Categoria</h3>
-          <p>Agrupar produtos por categoria</p>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- RELATÓRIOS E AUDITORIA -->
-  <div class="home-section">
-    <h3 class="home-section-title">
-      <mat-icon>analytics</mat-icon>
-      Relatórios e Controle
-    </h3>
-
-    <div class="home-cards">
-      @if (isAdmin) {
-      <mat-card class="home-card" (click)="irParaRelatorioInventario()">
-        <mat-card-content>
-          <mat-icon class="home-icon">bar_chart</mat-icon>
-          <h3>Relatório de Inventário</h3>
-          <p>Vendas, custos e lucros por produto</p>
-        </mat-card-content>
-      </mat-card>
+    <div class="home-destaques">
+      @for (op of destaques; track op.rota; let primeiro = $first, i = $index) {
+      <button type="button" class="home-destaque home-anima" [class.principal]="primeiro" [style.--ordem]="2 + i" (click)="ir(op)">
+        <mat-icon>{{ op.icone }}</mat-icon>
+        <span>
+          <span class="home-destaque-titulo">{{ op.titulo }}</span>
+          <span class="home-destaque-desc">{{ op.descricao }}</span>
+        </span>
+      </button>
       }
-
-      <mat-card class="home-card" (click)="irParaAuditoria()">
-        <mat-card-content>
-          <mat-icon class="home-icon">manage_search</mat-icon>
-          <h3>Auditoria</h3>
-          <p>Histórico de operações por usuário</p>
-        </mat-card-content>
-      </mat-card>
     </div>
-  </div>
 
-  <!-- ADMINISTRAÇÃO -->
-  @if (isAdmin) {
-  <div class="home-section">
-    <h3 class="home-section-title">
-      <mat-icon>admin_panel_settings</mat-icon>
-      Administração
-    </h3>
-
-    <div class="home-cards">
-      <mat-card class="home-card" (click)="irParaGerenciarUsuarios()">
-        <mat-card-content>
-          <mat-icon class="home-icon">manage_accounts</mat-icon>
-          <h3>Gerenciar Usuários</h3>
-          <p>Atribuir perfis de acesso e resetar senhas</p>
-        </mat-card-content>
-      </mat-card>
+    <div class="home-atalhos">
+      @for (op of atalhos; track op.rota; let i = $index) {
+      <button type="button" class="home-atalho home-anima" [title]="op.descricao" [style.--ordem]="4 + i" (click)="ir(op)">
+        <mat-icon>{{ op.icone }}</mat-icon>
+        {{ op.titulo }}
+      </button>
+      }
     </div>
-  </div>
-  }
 
-  <app-rodape-sistema />
+    <app-rodape-sistema />
+  </main>
 
 </div>

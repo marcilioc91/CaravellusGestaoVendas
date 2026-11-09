@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, ViewChild 
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ import { VendaService } from '../../services/venda.service';
 import { CadastroModal } from '../cadastro-modal/cadastro-modal';
 import { ImportarClientesDialog } from './importar-clientes-dialog';
 import { formatarTelefone, normalizarTexto } from '../../utils/utils';
+import { PaginadorPt } from '../../shared/paginador-pt';
 
 // ── Diálogo de confirmação ────────────────────────────────────────────────────
 @Component({
@@ -113,6 +114,8 @@ export class HistoricoClienteDialog implements OnInit {
 // ── Página de clientes ─────────────────────────────────────────────────────────
 @Component({
   selector: 'app-clientes',
+  // Textos do paginador em português (registrado aqui, e não no app.config, para não pesar no carregamento inicial)
+  providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPt }],
   standalone: true,
   imports: [
     CommonModule,

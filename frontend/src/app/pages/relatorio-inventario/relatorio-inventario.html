@@ -6,7 +6,7 @@
     </button>
     <h2 class="relatorio-titulo">
       <mat-icon>bar_chart</mat-icon>
-      Relatório de Inventário
+      Desempenho de Vendas
     </h2>
     <span class="relatorio-periodo">{{ periodoTexto }}</span>
     <span class="espacador"></span>
@@ -23,6 +23,13 @@
       Imprimir A4
     </button>
   </div>
+
+  <!-- Forma de exibir: vale para o mesmo período e os mesmos dados -->
+  <mat-button-toggle-group class="seletor-visao nao-imprimir" [value]="visao" (change)="trocarVisao($event.value)"
+    aria-label="Forma de exibir o relatório" hideSingleSelectionIndicator>
+    <mat-button-toggle value="tabela"><mat-icon>table_rows</mat-icon> Tabela</mat-button-toggle>
+    <mat-button-toggle value="graficos"><mat-icon>insights</mat-icon> Gráficos</mat-button-toggle>
+  </mat-button-toggle-group>
 
   @if (exportandoPdf) {
   <div class="barra-exportacao nao-imprimir">
@@ -48,7 +55,11 @@
     </div>
     }
 
-    @if (itens.length > 0) {
+    @if (itens.length > 0 && visao === 'graficos') {
+    <app-relatorio-graficos [itens]="itens" />
+    }
+
+    @if (itens.length > 0 && visao === 'tabela') {
     <div class="relatorio-tabela-wrapper">
       <table mat-table [dataSource]="itens" [trackBy]="trackByProduto" class="relatorio-tabela mat-elevation-z2">
 

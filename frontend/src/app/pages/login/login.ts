@@ -16,6 +16,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
 import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
+import { Logo } from '../../shared/logo/logo';
 
 @Component({
   selector: 'app-login',
@@ -30,7 +31,8 @@ import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
     MatIconModule,
     MatDialogModule,
     TemaToggle,
-    RodapeSistema
+    RodapeSistema,
+    Logo
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
@@ -76,8 +78,9 @@ export class Login {
 
   private entrar(usuario: any) {
     this.auth.setUsuarioLogado(usuario);
-    this.router.navigate(['/home']);
-    this.snackBar.open(`Login realizado com sucesso! Bem-vindo, ${usuario.pessoa?.nome || usuario.usuarioLogin}!`, 'Fechar', { duration: 3000 });
+    // aposLogin: liga a transição animada (app.config.ts) e a entrada da tela inicial (home.ts).
+    // A saudação agora fica na própria tela inicial, por isso não há mais aviso de "login realizado".
+    this.router.navigate(['/home'], { state: { aposLogin: true } });
   }
 
   // Primeiro acesso com senha padrão: só entra no sistema depois de definir uma nova senha

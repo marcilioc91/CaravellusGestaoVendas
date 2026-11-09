@@ -16,8 +16,56 @@
   gap: 12px;
 }
 
+.filtro-categoria {
+  width: 280px;
+  max-width: 100%;
+}
+
+/* Seções por categoria: mesmo visual da tela de vendas */
+.secao-categoria + .secao-categoria {
+  margin-top: 28px;
+}
+
+.secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--borda-destaque);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--texto-forte);
+}
+
+.secao-quantidade {
+  min-width: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--fundo-destaque);
+  color: var(--texto-medio);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+}
+
+/* Larguras fixas: as colunas ficam alinhadas de uma seção para outra */
 .produtos-tabela {
   width: 100%;
+  table-layout: fixed;
+}
+
+.mat-column-semEstoque { width: 116px; white-space: nowrap; }
+.mat-column-imagem { width: 64px; }
+.mat-column-preco { width: 120px; }
+.mat-column-estoque { width: 100px; }
+.mat-column-acoes { width: 120px; }
+
+.acoes-linha {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .sem-dados {

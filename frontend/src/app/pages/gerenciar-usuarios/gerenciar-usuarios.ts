@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../services/auth.service';
 import { Usuario } from '../../models/usuario';
 import { SENHA_TAMANHO_MINIMO, senhaValida } from '../../utils/utils';
+import { ConfirmDialog } from '../clientes/clientes';
 
 // ── Diálogo de reset de senha ─────────────────────────────────────────────────
 @Component({
@@ -93,11 +94,21 @@ export class GerenciarUsuarios implements OnInit {
 
   alternarPerfil(usuario: Usuario) {
     const novoPerfil = usuario.perfil === 'ADMIN' ? 'OPERADOR' : 'ADMIN';
-    this.auth.atualizarPerfil(usuario.id!, novoPerfil).subscribe({
-      next: (atualizado) => {
-        usuario.perfil = atualizado.perfil;
-        this.cdRef.detectChanges();
-      },
+    const nome = usuario.pessoa?.nome ?? usuario.usuarioLogin;
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '380px',
+      data: { titulo: 'Alterar perfil', mensagem: `Alterar o perfil de "${nome}" para ${novoPerfil}? A sessão dele será encerrada e ele precisará entrar de novo.` },
+      panelClass: 'confirm-dialog-panel'
+    });
+    ref.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.auth.atualizarPerfil(usuario.id!, novoPerfil).subscribe({
+        next: (atualizado) => {
+          usuario.perfil = atualizado.perfil;
+          this.cdRef.detectChanges();
+        },
+        error: () => this.snackBar.open('Erro ao alterar o perfil.', 'Fechar', { duration: 3000 }),
+      });
     });
   }
 

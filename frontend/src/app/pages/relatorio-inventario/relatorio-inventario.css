@@ -1,6 +1,6 @@
 .relatorio-container {
   padding: 32px;
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
@@ -8,7 +8,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
+}
+
+.seletor-visao {
+  margin-bottom: 20px;
 }
 
 /* Barra exibida enquanto o PDF e gerado (exportarPdf) */

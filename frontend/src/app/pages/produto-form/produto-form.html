@@ -16,68 +16,81 @@
   @if (produtos.length === 0) {
   <p class="sem-dados">Nenhum produto cadastrado.</p>
   } @else {
-  <table mat-table [dataSource]="produtos" class="produtos-tabela mat-elevation-z2">
+  <mat-form-field class="filtro-categoria">
+    <mat-label>Categoria</mat-label>
+    <mat-select [(ngModel)]="grupoSelecionado">
+      @for (g of grupos; track g.nome) {
+      <mat-option [value]="g">{{ g.nome }} ({{ g.produtos.length }})</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
 
-    <ng-container matColumnDef="semEstoque">
-      <th mat-header-cell *matHeaderCellDef title="Sem estoque">S/ Estoque</th>
-      <td mat-cell *matCellDef="let p">
-        <mat-checkbox [checked]="p.estoque === 0" [disabled]="p.estoque === 0"
-          (change)="marcarSemEstoque(p, $event.checked)" title="Marcar como sem estoque">
-        </mat-checkbox>
-      </td>
-    </ng-container>
+  @for (secao of secoesVisiveis(); track secao.nome) {
+  <section class="secao-categoria">
+    <h4 class="secao-titulo">
+      {{ secao.nome }}
+      <span class="secao-quantidade">{{ secao.produtos.length }}</span>
+    </h4>
 
-    <ng-container matColumnDef="imagem">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let p">
-        @if (produtoService.urlImagem(p); as url) {
-        <img class="miniatura" [src]="url" alt="">
-        } @else {
-        <mat-icon class="miniatura-vazia">image</mat-icon>
-        }
-      </td>
-    </ng-container>
+    <table mat-table [dataSource]="secao.produtos" class="produtos-tabela mat-elevation-z2">
 
-    <ng-container matColumnDef="nome">
-      <th mat-header-cell *matHeaderCellDef>Produto</th>
-      <td mat-cell *matCellDef="let p" class="uppercase">{{ p.nome }}</td>
-    </ng-container>
+      <ng-container matColumnDef="semEstoque">
+        <th mat-header-cell *matHeaderCellDef title="Sem estoque">S/ Estoque</th>
+        <td mat-cell *matCellDef="let p">
+          <mat-checkbox [checked]="p.estoque === 0" [disabled]="p.estoque === 0"
+            (change)="marcarSemEstoque(p, $event.checked)" title="Marcar como sem estoque">
+          </mat-checkbox>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="categoria">
-      <th mat-header-cell *matHeaderCellDef>Categoria</th>
-      <td mat-cell *matCellDef="let p">
-        @if (p.categoria) { {{ p.categoria.nome }} } @else { <span class="sem-categoria">Sem categoria</span> }
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="imagem">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          @if (produtoService.urlImagem(p); as url) {
+          <img class="miniatura" [src]="url" alt="" loading="lazy">
+          } @else {
+          <mat-icon class="miniatura-vazia">image</mat-icon>
+          }
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="preco">
-      <th mat-header-cell *matHeaderCellDef>Preço</th>
-      <td mat-cell *matCellDef="let p">R$ {{ p.preco | number:'1.2-2' }}</td>
-    </ng-container>
+      <ng-container matColumnDef="nome">
+        <th mat-header-cell *matHeaderCellDef>Produto</th>
+        <td mat-cell *matCellDef="let p" class="uppercase">{{ p.nome }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="estoque">
-      <th mat-header-cell *matHeaderCellDef>Estoque</th>
-      <td mat-cell *matCellDef="let p">
-        <span [class.estoque-zero]="p.estoque === 0" [class.estoque-baixo]="p.estoque > 0 && p.estoque <= 5">
-          {{ p.estoque }} un.
-        </span>
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="preco">
+        <th mat-header-cell *matHeaderCellDef>Preço</th>
+        <td mat-cell *matCellDef="let p">R$ {{ p.preco | number:'1.2-2' }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="acoes">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let p">
-        <button mat-icon-button (click)="abrirEdicao(p)" title="Editar">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="warn" (click)="excluir(p)" title="Excluir">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="estoque">
+        <th mat-header-cell *matHeaderCellDef>Estoque</th>
+        <td mat-cell *matCellDef="let p">
+          <span [class.estoque-zero]="p.estoque === 0" [class.estoque-baixo]="p.estoque > 0 && p.estoque <= 5">
+            {{ p.estoque }} un.
+          </span>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="colunas"></tr>
-    <tr mat-row *matRowDef="let row; columns: colunas;"></tr>
-  </table>
+      <ng-container matColumnDef="acoes">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          <div class="acoes-linha">
+            <button mat-icon-button (click)="abrirEdicao(p)" title="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="excluir(p)" title="Excluir">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+      <tr mat-row *matRowDef="let row; columns: colunas;"></tr>
+    </table>
+  </section>
+  }
   }
 </div>

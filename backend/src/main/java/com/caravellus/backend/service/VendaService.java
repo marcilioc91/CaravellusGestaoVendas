@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,6 +29,12 @@ import java.util.Map;
 
 import jakarta.persistence.EntityManager;
 
+/**
+ * Vendas: cada operação que mexe em itens também mexe no estoque, na mesma transação.
+ * Quem fez a operação vem sempre da sessão (usuarioId/usuarioNome), nunca do corpo da requisição.
+ * Dados inválidos (produto inexistente, quantidade zero, estoque insuficiente): IllegalArgumentException,
+ * que desfaz a transação inteira (nenhum item gravado, nenhum estoque alterado).
+ */
 @Service
 public class VendaService {
 
@@ -44,41 +51,24 @@ public class VendaService {
     private AuditoriaService auditoriaService;
 
     @Transactional
-    public Venda realizarVenda(VendaRequestDTO dto) {
+    public Venda realizarVenda(VendaRequestDTO dto, Long usuarioId, String usuarioNome) {
+        if (dto.getClienteId() == null) {
+            throw new IllegalArgumentException("Selecione o cliente da venda.");
+        }
+        List<ItemConferido> itens = conferirItens(dto.getProdutos());
+
         Venda venda = new Venda();
         venda.setCliente(entityManager.getReference(Cliente.class, dto.getClienteId()));
-        venda.setUsuario(entityManager.getReference(Usuario.class, dto.getUsuarioId()));
+        venda.setUsuario(entityManager.getReference(Usuario.class, usuarioId));
         venda.setFormaPagamento(dto.getFormaPagamento());
         venda.setValorPago(dto.getValorPago());
-
+        venda.setItens(new ArrayList<>());
         venda = vendaRepository.save(venda);
 
-        StringBuilder itensDesc = new StringBuilder();
-        for (VendaProdutoRequestDTO item : dto.getProdutos()) {
-            Produto produto = produtoRepository.findById(item.getProdutoId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado: " + item.getProdutoId()));
+        String itensDesc = gravarItens(venda, itens);
 
-            VendaItem vp = new VendaItem();
-            vp.setVenda(venda);
-            vp.setProduto(produto);
-            vp.setQuantidade(item.getQuantidade());
-            vp.setPrecoUnitario(produto.getPreco());
-
-            entityManager.persist(vp);
-
-            produto.setEstoque(produto.getEstoque() - item.getQuantidade());
-            produtoRepository.save(produto);
-
-            if (itensDesc.length() > 0) itensDesc.append(", ");
-            itensDesc.append(produto.getNome()).append(" x").append(item.getQuantidade());
-        }
-
-        auditoriaService.registrar(
-                dto.getUsuarioId(),
-                dto.getUsuarioNome(),
-                "VENDA",
-                "Venda #" + venda.getId() + " realizada. Itens: " + itensDesc
-        );
+        auditoriaService.registrar(usuarioId, usuarioNome, "VENDA",
+                "Venda #" + venda.getId() + " realizada. Itens: " + itensDesc);
 
         return venda;
     }
@@ -100,12 +90,18 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda atualizarPagamento(Long id, PagamentoRequestDTO dto) {
-        Venda venda = vendaRepository.findById(id.intValue())
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada: " + id));
+    public Venda atualizarPagamento(Long id, PagamentoRequestDTO dto, Long usuarioId, String usuarioNome) {
+        Venda venda = buscarVenda(id);
+        String antes = descreverPagamento(venda.getFormaPagamento(), venda.getValorPago());
+
         venda.setFormaPagamento(dto.getFormaPagamento());
         venda.setValorPago(dto.getValorPago());
-        return vendaRepository.save(venda);
+        Venda salva = vendaRepository.save(venda);
+
+        auditoriaService.registrar(usuarioId, usuarioNome, "ALTERACAO_PAGAMENTO_VENDA",
+                "Pagamento da venda #" + id + " do cliente '" + nomeCliente(venda) + "' alterado de "
+                        + antes + " para " + descreverPagamento(dto.getFormaPagamento(), dto.getValorPago()) + ".");
+        return salva;
     }
 
     public List<RelatorioInventarioItemDTO> gerarRelatorioInventario(LocalDate inicio, LocalDate fim) {
@@ -142,10 +138,14 @@ public class VendaService {
         return resultado;
     }
 
+    /**
+     * Troca os itens da venda: devolve ao estoque os itens atuais e baixa os novos.
+     * O estoque disponível para os novos itens já conta o que foi devolvido.
+     */
     @Transactional
-    public Venda atualizarItens(Long id, VendaRequestDTO dto) {
-        Venda venda = vendaRepository.findById(id.intValue())
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada: " + id));
+    public Venda atualizarItens(Long id, VendaRequestDTO dto, Long usuarioId, String usuarioNome) {
+        Venda venda = buscarVenda(id);
+        String itensAntes = descreverItens(venda.getItens());
 
         for (VendaItem item : venda.getItens()) {
             Produto p = item.getProduto();
@@ -154,25 +154,15 @@ public class VendaService {
 
             entityManager.remove(item);
         }
-
         venda.getItens().clear();
         vendaRepository.save(venda);
 
-        for (VendaProdutoRequestDTO itemDto : dto.getProdutos()) {
-            Produto produto = produtoRepository.findById(itemDto.getProdutoId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+        List<ItemConferido> itens = conferirItens(dto.getProdutos());
+        String itensDepois = gravarItens(venda, itens);
 
-            VendaItem novoItem = new VendaItem();
-            novoItem.setVenda(venda);
-            novoItem.setProduto(produto);
-            novoItem.setQuantidade(itemDto.getQuantidade());
-            novoItem.setPrecoUnitario(produto.getPreco());
-
-            entityManager.persist(novoItem);
-
-            produto.setEstoque(produto.getEstoque() - itemDto.getQuantidade());
-            produtoRepository.save(produto);
-        }
+        auditoriaService.registrar(usuarioId, usuarioNome, "ALTERACAO_ITENS_VENDA",
+                "Itens da venda #" + id + " do cliente '" + nomeCliente(venda) + "' alterados de ["
+                        + itensAntes + "] para [" + itensDepois + "].");
 
         return vendaRepository.save(venda);
     }
@@ -180,23 +170,99 @@ public class VendaService {
     /** Exclui a venda e devolve ao estoque a quantidade de cada item */
     @Transactional
     public void excluir(Long id, Long usuarioId, String usuarioNome) {
-        Venda venda = vendaRepository.findById(id.intValue())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada."));
+        Venda venda = buscarVenda(id);
 
-        StringBuilder itensDesc = new StringBuilder();
         for (VendaItem item : venda.getItens()) {
             Produto p = item.getProduto();
             p.setEstoque(p.getEstoque() + item.getQuantidade());
             produtoRepository.save(p);
-
-            if (itensDesc.length() > 0) itensDesc.append(", ");
-            itensDesc.append(p.getNome()).append(" x").append(item.getQuantidade());
         }
+        String itensDesc = descreverItens(venda.getItens());
 
-        String nomeCliente = venda.getCliente().getPessoa().getNome();
+        String nomeCliente = nomeCliente(venda);
         vendaRepository.delete(venda); // cascade = ALL em Venda.itens apaga os VENDA_ITEM junto
 
         auditoriaService.registrar(usuarioId, usuarioNome, "EXCLUSAO_VENDA",
                 "Venda #" + id + " do cliente '" + nomeCliente + "' excluída. Itens devolvidos ao estoque: " + itensDesc);
+    }
+
+    /**
+     * Confere os itens antes de gravar qualquer coisa: produto existente, quantidade positiva e estoque
+     * suficiente. O mesmo produto repetido na lista é somado (o estoque vale para o total).
+     */
+    /** Produto já conferido e a quantidade total pedida dele */
+    private record ItemConferido(Produto produto, int quantidade) {}
+
+    private List<ItemConferido> conferirItens(List<VendaProdutoRequestDTO> produtos) {
+        if (produtos == null || produtos.isEmpty()) {
+            throw new IllegalArgumentException("A venda precisa ter pelo menos um produto.");
+        }
+
+        Map<Long, Integer> quantidades = new LinkedHashMap<>();
+        for (VendaProdutoRequestDTO item : produtos) {
+            if (item.getProdutoId() == null) {
+                throw new IllegalArgumentException("Produto não informado.");
+            }
+            if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
+                throw new IllegalArgumentException("A quantidade de cada produto deve ser maior que zero.");
+            }
+            quantidades.merge(item.getProdutoId(), item.getQuantidade(), Integer::sum);
+        }
+
+        List<ItemConferido> itens = new ArrayList<>();
+        quantidades.forEach((produtoId, quantidade) -> {
+            Produto produto = produtoRepository.findById(produtoId)
+                    .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + produtoId + "."));
+            int disponivel = produto.getEstoque() != null ? produto.getEstoque() : 0;
+            if (quantidade > disponivel) {
+                throw new IllegalArgumentException("Estoque insuficiente para '" + produto.getNome()
+                        + "': pedido " + quantidade + ", disponível " + disponivel + ".");
+            }
+            itens.add(new ItemConferido(produto, quantidade));
+        });
+        return itens;
+    }
+
+    /** Grava os itens com o preço atual de cada produto e baixa o estoque. Devolve a descrição para a auditoria. */
+    private String gravarItens(Venda venda, List<ItemConferido> itens) {
+        for (ItemConferido conferido : itens) {
+            Produto produto = conferido.produto();
+            int quantidade = conferido.quantidade();
+            VendaItem item = new VendaItem();
+            item.setVenda(venda);
+            item.setProduto(produto);
+            item.setQuantidade(quantidade);
+            item.setPrecoUnitario(produto.getPreco());
+            entityManager.persist(item);
+            venda.getItens().add(item);
+
+            produto.setEstoque(produto.getEstoque() - quantidade);
+            produtoRepository.save(produto);
+        }
+        return descreverItens(venda.getItens());
+    }
+
+    private Venda buscarVenda(Long id) {
+        return vendaRepository.findById(id.intValue())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada."));
+    }
+
+    private static String descreverItens(List<VendaItem> itens) {
+        StringBuilder desc = new StringBuilder();
+        for (VendaItem item : itens) {
+            if (!desc.isEmpty()) desc.append(", ");
+            desc.append(item.getProduto().getNome()).append(" x").append(item.getQuantidade());
+        }
+        return desc.toString();
+    }
+
+    private static String descreverPagamento(String forma, BigDecimal valor) {
+        return (forma != null ? forma : "-") + " R$ " + (valor != null ? valor.setScale(2, RoundingMode.HALF_UP).toPlainString() : "0.00");
+    }
+
+    private static String nomeCliente(Venda venda) {
+        return venda.getCliente() != null && venda.getCliente().getPessoa() != null
+                ? venda.getCliente().getPessoa().getNome()
+                : "?";
     }
 }

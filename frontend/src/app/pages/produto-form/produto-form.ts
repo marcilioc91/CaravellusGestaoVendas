@@ -15,7 +15,8 @@ import { Categoria } from '../../models/categoria';
 import { Produto } from '../../models/produto';
 import { CategoriaService } from '../../services/categoria.service';
 import { ProdutoService } from '../../services/produto.service';
-import { reduzirImagem } from '../../utils/utils';
+import { agruparPorCategoria, GrupoCategoria, reduzirImagem, secoesDoFiltro } from '../../utils/utils';
+import { ConfirmDialog } from '../clientes/clientes';
 
 /** imagem: undefined = não mexeu, null = remover, Blob = nova imagem */
 interface ResultadoFormulario {
@@ -111,6 +112,9 @@ export class ProdutoFormDialog implements OnDestroy {
     MatIconModule,
     MatCheckboxModule,
     MatDialogModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
     RouterLink,
   ],
   templateUrl: './produto-form.html',
@@ -119,7 +123,11 @@ export class ProdutoFormDialog implements OnDestroy {
 export class ProdutoForm implements OnInit {
   produtos: Produto[] = [];
   categorias: Categoria[] = [];
-  colunas = ['semEstoque', 'imagem', 'nome', 'categoria', 'preco', 'estoque', 'acoes'];
+  /** Mesmo agrupamento da tela de vendas: filtro "Todas" ou uma categoria, uma seção por categoria */
+  grupos: GrupoCategoria[] = [];
+  grupoSelecionado: GrupoCategoria | null = null;
+  /** A categoria já aparece no título da seção, por isso não há coluna para ela */
+  colunas = ['semEstoque', 'imagem', 'nome', 'preco', 'estoque', 'acoes'];
 
   constructor(
     public produtoService: ProdutoService,
@@ -140,11 +148,19 @@ export class ProdutoForm implements OnInit {
   carregar() {
     this.produtoService.listar().subscribe({
       next: dados => {
+        // Recarregar (após salvar, excluir...) mantém a categoria que estava no filtro
+        const categoriaAtual = this.grupoSelecionado?.nome;
         this.produtos = dados;
+        this.grupos = agruparPorCategoria(dados);
+        this.grupoSelecionado = this.grupos.find(g => g.nome === categoriaAtual) ?? this.grupos[0];
         this.cdr.detectChanges();
       },
       error: () => this.snackBar.open('Erro ao carregar produtos.', 'Fechar', { duration: 3000 })
     });
+  }
+
+  secoesVisiveis(): GrupoCategoria[] {
+    return secoesDoFiltro(this.grupos, this.grupoSelecionado);
   }
 
   abrirFormulario() {
@@ -200,13 +216,22 @@ export class ProdutoForm implements OnInit {
   }
 
   excluir(produto: Produto) {
-    if (!produto.id) return;
-    this.produtoService.excluir(produto.id).subscribe({
-      next: () => {
-        this.snackBar.open('Produto excluído.', 'Fechar', { duration: 3000 });
-        this.carregar();
-      },
-      error: () => this.snackBar.open('Erro ao excluir produto.', 'Fechar', { duration: 3000 })
+    const id = produto.id;
+    if (!id) return;
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '380px',
+      data: { titulo: 'Excluir produto', mensagem: `Deseja excluir o produto "${produto.nome}"? Produtos que já aparecem em vendas não podem ser excluídos.` },
+      panelClass: 'confirm-dialog-panel'
+    });
+    ref.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.produtoService.excluir(id).subscribe({
+        next: () => {
+          this.snackBar.open('Produto excluído.', 'Fechar', { duration: 3000 });
+          this.carregar();
+        },
+        error: () => this.snackBar.open('Erro ao excluir produto. Se ele já foi vendido, zere o estoque em vez de excluir.', 'Fechar', { duration: 5000 })
+      });
     });
   }
 }

@@ -270,7 +270,7 @@ public class ImportacaoClientesService {
         return texto;
     }
 
-    /** "(81) 99350-4481"; dois celulares colados no mesmo campo viram "(81) 9... / (81) 9..."; o resto fica como veio. */
+    /** "(81) 99999-0000"; dois celulares colados no mesmo campo viram "(81) 9... / (81) 9..."; o resto fica como veio. */
     private static String formatarTelefones(String texto) {
         String digitos = texto.replaceAll("\\D", "");
         if (digitos.length() == 22) {
