@@ -8,12 +8,9 @@
 
 [English](README.md) · **Português**
 
-<!--
-Capturas de tela (só com dados de demonstração, nunca clientes reais). Salve em docs/images/ e descomente:
 | Tela inicial | Nova venda | Desempenho de vendas |
 |---|---|---|
 | ![Tela inicial](docs/images/home.png) | ![Nova venda](docs/images/venda.png) | ![Desempenho de vendas](docs/images/desempenho.png) |
--->
 
 O Caravellus é um aplicativo desktop para Windows que gerencia a cantina de acampamentos e conferências: clientes, produtos, vendas, estoque e contas em aberto, além de usuários, auditoria e relatórios. Não precisa de servidor de banco nem de Java instalado, roda em computador modesto e funciona sem internet. Só a recuperação de senha e o pedido de licença usam a rede.
 

@@ -8,12 +8,9 @@
 
 **English** · [Português](README.pt-BR.md)
 
-<!--
-Screenshots (demo data only, never real customers). Save them in docs/images/ and uncomment:
 | Home | New sale | Sales performance |
 |---|---|---|
 | ![Home](docs/images/home.png) | ![New sale](docs/images/venda.png) | ![Sales performance](docs/images/desempenho.png) |
--->
 
 Caravellus is a Windows desktop app that runs the cafeteria at church camps and conferences: customers, products, sales, stock and running tabs, plus users, auditing and reports. It needs no database server and no installed Java, runs on modest hardware, and works offline. Only password recovery and license requests use the internet.
 
