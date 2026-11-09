@@ -1,7 +1,27 @@
 .clientes-container {
-  padding: 32px;
+  /* Ocupa a altura da janela: cabeçalho e busca no topo, tabela rolando no meio, paginador no rodapé */
+  box-sizing: border-box;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 32px 16px;
   max-width: 900px;
   margin: 0 auto;
+}
+
+.tabela-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 4px 4px 0 0;
+  /* Mesmo fundo da tabela: com poucas linhas, tabela e paginador continuam formando um cartão só */
+  background: var(--mat-table-background-color, var(--fundo-painel));
+}
+
+.clientes-paginador {
+  flex-shrink: 0;
+  border-top: 1px solid var(--borda);
+  border-radius: 0 0 4px 4px;
 }
 
 .clientes-header {
@@ -23,6 +43,34 @@
 
 .clientes-tabela {
   width: 100%;
+  /* Larguras fixas: com o layout automático, cada filtro recalculava as colunas conforme o texto
+     visível e os botões de ação ora ficavam lado a lado, ora quebravam em coluna. */
+  table-layout: fixed;
+}
+
+.mat-column-nome {
+  width: 32%;
+}
+
+.mat-column-telefone {
+  width: 145px;
+}
+
+/* Observações longas quebram dentro da própria coluna, sem empurrar as outras */
+.mat-column-obs {
+  overflow-wrap: anywhere;
+}
+
+/* 3 botões de 48px + recuo da célula */
+.mat-column-acoes {
+  width: 168px;
+  padding-right: 8px;
+}
+
+.acoes-linha {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .sem-dados {

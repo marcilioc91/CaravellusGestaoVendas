@@ -1,20 +1,106 @@
-.home-container {
-  position: relative;
+/* Tela inicial: menu lateral + painel. Ocupa exatamente a janela (sem rolagem da página). */
+:host {
+  --menu-fundo: linear-gradient(180deg, #14406f 0%, #1f5fa8 100%);
+  --menu-secao: #9fc0e3;
+  --menu-ativo: rgba(255, 255, 255, 0.16);
+  --destaque-fundo: linear-gradient(135deg, #1f5fa8, #2fa7d8);
+  --destaque-sombra: rgba(31, 95, 168, 0.28);
+  display: block;
+}
+
+:host-context(body.tema-escuro) {
+  --menu-fundo: linear-gradient(180deg, #081627 0%, #10294a 100%);
+  --menu-secao: #7f9cbd;
+  --menu-ativo: rgba(95, 163, 232, 0.18);
+  --destaque-fundo: linear-gradient(135deg, #1d4f8c, #2b86b8);
+  --destaque-sombra: rgba(0, 0, 0, 0.45);
+}
+
+.home {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Menu lateral ─────────────────────────────────────────────────────────── */
+.home-menu {
+  flex: 0 0 264px;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 18px 14px;
+  overflow-y: auto;
+  background: var(--menu-fundo);
+  color: #dbe9f7;
+}
+
+.home-logo {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 32px;
-  padding-bottom: 64px;
+  gap: 10px;
+  margin: 2px 8px 22px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.home-logo app-logo {
+  width: 38px;
+  height: 38px;
+}
+
+.home-menu-secao {
+  margin: 14px 10px 6px;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--menu-secao);
+}
+
+.home-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-link:hover,
+.home-link:focus-visible,
+.home-link.ativo {
+  background: var(--menu-ativo);
+  color: #fff;
+  outline: none;
+}
+
+.home-link.ativo {
+  font-weight: 600;
+  cursor: default;
+}
+
+/* ── Painel ───────────────────────────────────────────────────────────────── */
+.home-painel {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 40px 56px;
+  overflow-y: auto;
 }
 
 .home-topbar {
-  position: absolute;
-  top: 24px;
-  right: 24px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -22,99 +108,142 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1rem;
-  color: var(--texto-forte);
   font-weight: 500;
-}
-
-.home-titulo {
-  margin-top: 40px;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
   color: var(--texto-forte);
-  text-align: center;
 }
 
-.home-section {
-  width: 100%;
-  max-width: 900px;
-  margin-top: 15px;
+.home-saudacao {
+  margin: 12px 0 4px;
+  font-size: 1.6rem;
+  color: var(--texto-forte);
+}
+
+.home-sub {
+  margin: 0 0 22px;
+  color: var(--texto-suave);
+}
+
+.home-destaques {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 22px;
+  height: clamp(150px, 34vh, 260px);
+}
+
+/* Destaques e atalhos: botões com o mesmo comportamento ao passar o mouse */
+.home-destaque,
+.home-atalho {
   display: flex;
-  flex-direction: column;
   align-items: center;
-}
-
-.home-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 16px;
-}
-
-.home-cards {
-  display: flex;
-  gap: 50px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.home-card {
-  width: 220px;
-  height: 240px;
+  border: 1px solid var(--borda);
+  color: var(--texto-forte);
+  font: inherit;
   cursor: pointer;
-  text-align: center;
-  padding: 24px 16px;
-  border-radius: 12px;
-  transition: all 0.25s ease;
-  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
 
+.home-destaque:hover,
+.home-destaque:focus-visible,
+.home-atalho:hover,
+.home-atalho:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.home-destaque {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 26px 28px;
+  border-width: 2px;
+  border-radius: 18px;
   background: var(--fundo-cartao);
+  text-align: left;
 }
 
-.home-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
-  border: 2px solid var(--primary-color);
-  box-shadow: 0 6px 18px var(--sombra-hover);
+.home-destaque mat-icon {
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+  color: var(--primary-color);
 }
 
-.home-icon {
-  font-size: 42px;
-  width: 42px;
-  height: 42px;
+.home-destaque-titulo {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.home-destaque-desc {
+  display: block;
   color: var(--texto-medio);
-  margin-bottom: 12px;
 }
 
-.home-card h3 {
-  margin: 8px 0 4px;
-  font-size: 1.1rem;
-  color: var(--texto-forte);
+.home-destaque.principal {
+  border-color: transparent;
+  background: var(--destaque-fundo);
+  box-shadow: 0 10px 24px var(--destaque-sombra);
 }
 
-.home-card p {
-  font-size: 0.9rem;
+.home-destaque.principal,
+.home-destaque.principal mat-icon,
+.home-destaque.principal .home-destaque-desc {
+  color: #fff;
+}
+
+.home-atalhos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.home-atalho {
+  gap: 8px;
+  padding: 14px 12px;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  border-radius: 12px;
+  background: var(--fundo-painel);
+  font-weight: 600;
+}
+
+.home-atalho mat-icon {
   color: var(--texto-medio);
-  opacity: 0.85;
 }
 
-@media (max-width: 768px) {
-  .home-cards {
-    justify-content: center;
-  }
+/* ── Entrada após o login ─────────────────────────────────────────────────
+   Só transform e opacity: o navegador anima na GPU, sem recalcular layout.
+   Cada .home-anima entra um pouco depois do anterior (--ordem vem do template). */
+@keyframes home-deslizar {
+  from { opacity: 0; transform: translateX(-28px); }
+}
 
-  .home-section {
-    align-items: center;
-  }
+@keyframes home-subir {
+  from { opacity: 0; transform: translateY(16px); }
+}
 
-  .home-titulo {
-    margin-top: 40px;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-    color: var(--texto-forte);
-    text-align: center;
-  }
+.entrada .home-menu {
+  animation: home-deslizar 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.entrada .home-anima {
+  animation: home-subir 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.1s + var(--ordem) * 0.06s) both;
+}
+
+/* Atalhos em 2 colunas quando a janela fica mais estreita que a padrão (1200px): o texto não passa da borda */
+@media (max-width: 1180px) {
+  .home-atalhos { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Janela estreita: menu só com ícones (o nome aparece ao passar o mouse) ── */
+@media (max-width: 900px) {
+  .home-menu { flex-basis: 72px; padding: 18px 10px; }
+  .home-logo { justify-content: center; margin: 2px 0 22px; font-size: 0; gap: 0; }
+  .home-menu-secao { height: 1px; margin: 10px 6px; font-size: 0; background: var(--menu-secao); opacity: 0.4; }
+  .home-link { justify-content: center; padding: 10px 0; font-size: 0; gap: 0; }
+  .home-painel { padding: 18px 24px 56px; }
+  .home-atalhos { grid-template-columns: repeat(2, 1fr); }
 }

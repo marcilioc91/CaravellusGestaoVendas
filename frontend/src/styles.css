@@ -164,11 +164,19 @@ body {
   color: var(--texto-suave);
 }
 
+.tela-inicial-logo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 6px;
+  color: var(--primary-color);
+}
+
 .tela-inicial-spinner {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 12px;
-  border: 4px solid var(--borda);
+  width: 28px;
+  height: 28px;
+  margin-top: 14px;
+  border: 3px solid var(--borda);
   border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: tela-inicial-girar 0.9s linear infinite;
@@ -177,5 +185,31 @@ body {
 @keyframes tela-inicial-girar {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Transição login -> tela inicial (View Transitions; ligada só nessa navegação em app.config.ts).
+   O login se afasta e some; a tela inicial aparece por cima. Só opacity e transform (GPU). */
+@keyframes vt-login-sair {
+  to { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes vt-home-entrar {
+  from { opacity: 0; }
+}
+
+::view-transition-old(root) {
+  animation: vt-login-sair 0.35s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: vt-home-entrar 0.35s ease-out 0.1s both;
+}
+
+/* PDF e impressão: o Electron exporta com printBackground, então o fundo decorativo da página
+   apareceria abaixo do conteúdo. Na impressão o fundo é sempre branco. */
+@media print {
+  body {
+    background: #fff !important;
   }
 }

@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialog } from '../clientes/clientes';
 import { MatTableModule } from '@angular/material/table';
 import { Categoria } from '../../models/categoria';
 import { CategoriaService } from '../../services/categoria.service';
@@ -110,13 +111,22 @@ export class Categorias implements OnInit {
   }
 
   excluir(categoria: Categoria) {
-    if (!categoria.id) return;
-    this.categoriaService.excluir(categoria.id).subscribe({
-      next: () => {
-        this.snackBar.open('Categoria excluída.', 'Fechar', { duration: 3000 });
-        this.carregar();
-      },
-      error: err => this.snackBar.open(this.mensagemErro(err, 'Erro ao excluir categoria.'), 'Fechar', { duration: 4000 })
+    const id = categoria.id;
+    if (!id) return;
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '380px',
+      data: { titulo: 'Excluir categoria', mensagem: `Deseja excluir a categoria "${categoria.nome}"?` },
+      panelClass: 'confirm-dialog-panel'
+    });
+    ref.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.categoriaService.excluir(id).subscribe({
+        next: () => {
+          this.snackBar.open('Categoria excluída.', 'Fechar', { duration: 3000 });
+          this.carregar();
+        },
+        error: err => this.snackBar.open(this.mensagemErro(err, 'Erro ao excluir categoria.'), 'Fechar', { duration: 4000 })
+      });
     });
   }
 }

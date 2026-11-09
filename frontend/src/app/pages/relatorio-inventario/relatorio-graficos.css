@@ -1,0 +1,212 @@
+/* Cor das barras: uma série por gráfico, um tom só (validado contra o fundo de cada tema) */
+:host {
+  --barra-cor: #1f5fa8;
+  --barra-trilho: rgba(31, 95, 168, 0.08);
+  --cartao-fundo: var(--fundo-painel);
+  display: block;
+}
+
+:host-context(body.tema-escuro) {
+  --barra-cor: #4f93dc;
+  --barra-trilho: rgba(79, 147, 220, 0.1);
+}
+
+/* ── Indicadores ──────────────────────────────────────────────────────────── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--cartao-fundo);
+}
+
+.kpi-rotulo,
+.kpi-nota {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.kpi-valor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--texto-forte);
+}
+
+.kpi-alerta {
+  color: var(--cor-alerta);
+}
+
+/* ── Cartões dos gráficos ─────────────────────────────────────────────────── */
+.graficos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.grafico {
+  padding: 16px 18px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--cartao-fundo);
+  break-inside: avoid;
+}
+
+.grafico-largo {
+  grid-column: 1 / -1;
+}
+
+.grafico-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--texto-forte);
+}
+
+.grafico-sub,
+.grafico-vazio,
+.graficos-nota {
+  margin: 2px 0 12px;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.graficos-nota {
+  margin-top: 12px;
+}
+
+/* ── Barras: nome | barra (base à esquerda, ponta arredondada) + valor na ponta ── */
+.barras {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barra {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(90px, 34%) 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 4px;
+  border-radius: 6px;
+  outline: none;
+}
+
+.barra:hover,
+.barra:focus-visible {
+  background: var(--barra-trilho);
+}
+
+.barra:focus-visible {
+  box-shadow: 0 0 0 2px var(--barra-cor);
+}
+
+.barra-nome {
+  overflow: hidden;
+  font-size: 0.85rem;
+  color: var(--texto-forte);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.barra-fill {
+  flex-shrink: 0;
+  height: 16px;
+  min-width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--barra-cor);
+}
+
+.barra-rotulo {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-medio);
+  white-space: nowrap;
+}
+
+/* Dica: o valor em destaque, depois o nome e os detalhes */
+.dica {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 4px);
+  left: 34%;
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: var(--fundo-painel);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  font-size: 0.78rem;
+  color: var(--texto-medio);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dica strong {
+  font-size: 0.9rem;
+  color: var(--texto-forte);
+}
+
+.barra:hover .dica,
+.barra:focus-visible .dica {
+  display: flex;
+}
+
+/* ── Prejuízo ─────────────────────────────────────────────────────────────── */
+.prejuizo .grafico-titulo mat-icon {
+  color: var(--cor-alerta);
+}
+
+.prejuizo-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prejuizo-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.9rem;
+  color: var(--texto-forte);
+}
+
+@media (max-width: 900px) {
+  .graficos { grid-template-columns: 1fr; }
+}
+
+/* Impressão/PDF: barras em cinza escuro (a página força fundo branco em tudo) */
+@media print {
+  .kpis { grid-template-columns: repeat(5, 1fr); }
+  .graficos { grid-template-columns: 1fr 1fr; }
+  .barra-fill {
+    background: #444 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .grafico, .kpi { border: 1px solid #999 !important; }
+}

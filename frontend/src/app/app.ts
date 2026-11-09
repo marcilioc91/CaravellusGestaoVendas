@@ -9,10 +9,11 @@ import {
 } from '@angular/router';
 import { filter, take } from 'rxjs';
 import { TemaService } from './services/tema.service';
+import { Logo } from './shared/logo/logo';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Logo],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

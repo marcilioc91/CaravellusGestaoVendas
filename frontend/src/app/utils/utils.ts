@@ -1,3 +1,5 @@
+import { Produto } from '../models/produto';
+
 export function formatarTelefone(tel?: string): string {
   if (!tel) return '—';
 
@@ -156,3 +158,36 @@ function nomeArquivoValido(nome: string): string {
   return nome.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
 }
 
+/** Produtos de uma categoria (ou "Todas" / "Sem categoria") */
+export interface GrupoCategoria {
+  nome: string;
+  produtos: Produto[];
+}
+
+/**
+ * Agrupa por categoria, em ordem alfabética, com "Sem categoria" no fim.
+ * O primeiro grupo é sempre "Todas" (todos os produtos), usado como opção padrão do filtro.
+ * Usado nas telas de vendas e de produtos.
+ */
+export function agruparPorCategoria(produtos: Produto[]): GrupoCategoria[] {
+  const mapa = new Map<number, GrupoCategoria>();
+  const semCategoria: Produto[] = [];
+  for (const p of produtos) {
+    const cat = p.categoria;
+    if (!cat?.id) {
+      semCategoria.push(p);
+      continue;
+    }
+    if (!mapa.has(cat.id)) mapa.set(cat.id, { nome: cat.nome, produtos: [] });
+    mapa.get(cat.id)!.produtos.push(p);
+  }
+  const grupos = [...mapa.values()].sort((a, b) => a.nome.localeCompare(b.nome));
+  if (semCategoria.length > 0) grupos.push({ nome: 'Sem categoria', produtos: semCategoria });
+  return [{ nome: 'Todas', produtos: grupos.flatMap(g => g.produtos) }, ...grupos];
+}
+
+/** "Todas": uma seção por categoria; categoria escolhida no filtro: só a seção dela */
+export function secoesDoFiltro(grupos: GrupoCategoria[], selecionado: GrupoCategoria | null): GrupoCategoria[] {
+  if (!selecionado) return [];
+  return selecionado === grupos[0] ? grupos.slice(1) : [selecionado];
+}

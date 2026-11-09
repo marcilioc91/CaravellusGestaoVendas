@@ -34,52 +34,6 @@ interface GrupoCliente {
   vendas: VendaResposta[];
 }
 
-// ── Diálogo de edição de pagamento ────────────────────────────────────────────
-@Component({
-  selector: 'app-pagamento-dialog',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatButtonModule],
-  templateUrl: './pagamento-dialog.html',
-})
-export class PagamentoDialog {
-  formaPagamento: string;
-  valorPago: number;
-  erro = '';
-
-  formas = [
-    { valor: 'DINHEIRO', label: 'Dinheiro' },
-    { valor: 'PIX', label: 'PIX' },
-    { valor: 'CARTAO_CREDITO', label: 'Cartão de Crédito' },
-    { valor: 'CARTAO_DEBITO', label: 'Cartão de Débito' },
-    { valor: 'VOUCHER', label: 'Voucher' },
-    { valor: 'PENDENTE', label: 'Deixar Pendente' }
-  ];
-
-  constructor(
-    private dialogRef: MatDialogRef<PagamentoDialog>,
-    private vendaService: VendaService,
-    private cdr: ChangeDetectorRef,
-    @Inject(MAT_DIALOG_DATA) public data: { venda: VendaResposta; total: number }
-  ) {
-    this.formaPagamento = data.venda.formaPagamento ?? '';
-    this.valorPago = data.venda.valorPago ?? 0;
-  }
-
-  salvar() {
-    const valorFinal = this.formaPagamento === 'PENDENTE' ? 0 : this.valorPago;
-    this.vendaService.atualizarPagamento(this.data.venda.id, {
-      formaPagamento: this.formaPagamento,
-      valorPago: valorFinal,
-    }).subscribe({
-      next: () => this.dialogRef.close({ formaPagamento: this.formaPagamento, valorPago: valorFinal }),
-      error: () => { this.erro = 'Erro ao salvar pagamento.'; }
-    });
-    this.cdr.detectChanges();
-  }
-
-  cancelar() { this.dialogRef.close(null); }
-}
-
 // ── Diálogo de pagamento geral do cliente ────────────────────────────────────
 @Component({
   selector: 'app-pagamento-total-dialog',
@@ -603,11 +557,9 @@ export class EdicaoItensDialog implements OnInit {
       }))
     };
 
-    console.log('Payload para atualização:', payload);
-
     this.vendaService.atualizarItens(this.data.venda.id, payload).subscribe({
       next: () => this.dialogRef.close(true),
-      error: (err) => alert('Erro ao atualizar itens da venda.' + err)
+      error: (err) => alert(typeof err?.error === 'string' && err.error ? err.error : 'Erro ao atualizar itens da venda.')
     });
   }
 

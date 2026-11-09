@@ -144,6 +144,8 @@ export class Auditoria implements OnInit {
     const mapa: Record<string, string> = {
       VENDA: 'Venda',
       EXCLUSAO_VENDA: 'Excl. Venda',
+      ALTERACAO_PAGAMENTO_VENDA: 'Alt. Pagamento',
+      ALTERACAO_ITENS_VENDA: 'Alt. Itens Venda',
       INCLUSAO_PRODUTO: 'Incl. Produto',
       ALTERACAO_PRODUTO: 'Alt. Produto',
       EXCLUSAO_PRODUTO: 'Excl. Produto',

@@ -4,32 +4,32 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Casos reais do banco migrado (versão 1.0.1) */
+/** Padrões encontrados no banco migrado (versão 1.0.1), reproduzidos com nomes e números fictícios */
 class DuplicidadeServiceTest {
 
     @Test
     void mesmoNomeComAcentoEMaiusculasDiferentes() {
-        assertTrue(DuplicidadeService.mesmaPessoa("MARCILIO CABRAL", "81998318034", "Marcílio  Cabral ", null));
+        assertTrue(DuplicidadeService.mesmaPessoa("JOSÉ ALMEIDA", "81990000001", "José  Almeida ", null));
     }
 
     @Test
     void mesmoCelularEMesmoPrimeiroNome() {
-        assertTrue(DuplicidadeService.mesmaPessoa("Laís Santos de Souza", "81986437610", "LAIS SOUZA", "81986437610"));
+        assertTrue(DuplicidadeService.mesmaPessoa("Laís Ferreira de Souza", "81990000002", "LAIS SOUZA", "81990000002"));
     }
 
     @Test
     void celularSemONoveOuSemDddContaComoMesmoNumero() {
-        assertTrue(DuplicidadeService.mesmaPessoa("Maria Eduarda Fontes", "8194162697", "MARIA EDUARDA C. FONTES", "81994162697"));
-        assertTrue(DuplicidadeService.mesmaPessoa("Isabella Inácio", "91917579", "ISABELLA DUCENA", "(91) 99191-7579"));
+        assertTrue(DuplicidadeService.mesmaPessoa("Ana Beatriz Lima", "8190000003", "ANA BEATRIZ C. LIMA", "81990000003"));
+        assertTrue(DuplicidadeService.mesmaPessoa("Júlia Inácio", "90000004", "JULIA MOURA", "(81) 99000-0004"));
     }
 
     @Test
     void mesmoCelularComPrimeiroNomeDiferenteNaoEDuplicado() {
         // Irmãos e casais que compartilham o número
-        assertFalse(DuplicidadeService.mesmaPessoa("Guilherme Hytalo de Albuquerque Rijo", "81999721685",
-                "ANA GABRIELA DE ALBUQUERQUE RIJO", "81999721685"));
-        assertFalse(DuplicidadeService.mesmaPessoa("Thiago Jonathan Almeida do Nascimento", "81995377040",
-                "Livia Mirelly Ferreira de Lima Almeida", "81995377040"));
+        assertFalse(DuplicidadeService.mesmaPessoa("Pedro Henrique de Albuquerque Rocha", "81990000005",
+                "ANA CLARA DE ALBUQUERQUE ROCHA", "81990000005"));
+        assertFalse(DuplicidadeService.mesmaPessoa("Carlos Eduardo Almeida do Nascimento", "81990000006",
+                "Fernanda Ferreira de Lima Almeida", "81990000006"));
     }
 
     @Test

@@ -24,6 +24,12 @@
     background: var(--fundo-painel);
 }
 
+.login-logo {
+    width: 84px;
+    height: 84px;
+    color: var(--primary-color);
+}
+
 .login-form {
     display: flex;
     flex-direction: column;

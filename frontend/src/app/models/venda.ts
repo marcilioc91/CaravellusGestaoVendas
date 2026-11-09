@@ -7,8 +7,6 @@ export interface VendaProduto {
 
 export interface Venda {
   clienteId: number;
-  usuarioId: number;
-  usuarioNome?: string;
   produtos: VendaProduto[];
   formaPagamento: string;
   valorPago: number;

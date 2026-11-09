@@ -23,8 +23,14 @@ public class VendaController {
     private VendaService service;
 
     @PostMapping
-    public Venda realizarVenda(@RequestBody VendaRequestDTO dto) {
-        return service.realizarVenda(dto);
+    public ResponseEntity<?> realizarVenda(
+            @RequestBody VendaRequestDTO dto,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        try {
+            return ResponseEntity.ok(service.realizarVenda(dto, usuario.id(), usuario.nome()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
@@ -40,8 +46,11 @@ public class VendaController {
     }
 
     @PatchMapping("/{id}/pagamento")
-    public Venda atualizarPagamento(@PathVariable Long id, @RequestBody PagamentoRequestDTO dto) {
-        return service.atualizarPagamento(id, dto);
+    public Venda atualizarPagamento(
+            @PathVariable Long id,
+            @RequestBody PagamentoRequestDTO dto,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.atualizarPagamento(id, dto, usuario.id(), usuario.nome());
     }
 
     @SomenteAdmin
@@ -53,9 +62,15 @@ public class VendaController {
     }
 
     @PutMapping("/{id}/itens")
-    public ResponseEntity<Venda> atualizarItens(@PathVariable Long id, @RequestBody VendaRequestDTO dto) {
-        Venda vendaAtualizada = service.atualizarItens(id, dto);
-        return ResponseEntity.ok(vendaAtualizada);
+    public ResponseEntity<?> atualizarItens(
+            @PathVariable Long id,
+            @RequestBody VendaRequestDTO dto,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        try {
+            return ResponseEntity.ok(service.atualizarItens(id, dto, usuario.id(), usuario.nome()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @SomenteAdmin

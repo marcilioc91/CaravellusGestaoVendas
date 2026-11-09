@@ -1,0 +1,91 @@
+<!-- Indicadores do período -->
+<section class="kpis" aria-label="Resumo do período">
+  <div class="kpi">
+    <span class="kpi-rotulo">Receita</span>
+    <span class="kpi-valor">{{ real(receita) }}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-rotulo">Lucro</span>
+    <span class="kpi-valor">
+      @if (lucro < 0) { <mat-icon class="kpi-alerta" aria-hidden="true">warning</mat-icon> }
+      {{ real(lucro) }}
+    </span>
+    @if (lucro < 0) { <span class="kpi-nota">Prejuízo no período</span> }
+  </div>
+  <div class="kpi">
+    <span class="kpi-rotulo">Margem</span>
+    <span class="kpi-valor">{{ percentual(margem) }}</span>
+    <span class="kpi-nota">da receita virou lucro</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-rotulo">Itens vendidos</span>
+    <span class="kpi-valor">{{ itensVendidos }}</span>
+    <span class="kpi-nota">{{ produtosVendidos }} {{ produtosVendidos === 1 ? 'produto' : 'produtos' }}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-rotulo">Valor médio por item</span>
+    <span class="kpi-valor">{{ real(ticketPorItem) }}</span>
+  </div>
+</section>
+
+<div class="graficos">
+  <section class="grafico">
+    <h3 class="grafico-titulo">Mais vendidos</h3>
+    <p class="grafico-sub">Quantidade vendida{{ maisDeDez ? ' · 10 primeiros' : '' }}</p>
+    <ng-container *ngTemplateOutlet="barras; context: { $implicit: maisVendidos, vazio: 'Nenhum item vendido.', reserva: 64 }" />
+  </section>
+
+  <section class="grafico">
+    <h3 class="grafico-titulo">Mais rentáveis</h3>
+    <p class="grafico-sub">Lucro (receita − custo){{ maisDeDez ? ' · 10 primeiros' : '' }}</p>
+    <ng-container *ngTemplateOutlet="barras; context: { $implicit: maisRentaveis, vazio: 'Nenhum produto com lucro no período.', reserva: 96 }" />
+  </section>
+
+  <section class="grafico grafico-largo">
+    <h3 class="grafico-titulo">Receita por categoria</h3>
+    <p class="grafico-sub">Quanto cada categoria vendeu e sua parte no total</p>
+    <ng-container *ngTemplateOutlet="barras; context: { $implicit: receitaPorCategoria, vazio: 'Nenhuma receita no período.', reserva: 160 }" />
+  </section>
+
+  @if (comPrejuizo.length) {
+  <section class="grafico grafico-largo prejuizo" role="note">
+    <h3 class="grafico-titulo">
+      <mat-icon aria-hidden="true">warning</mat-icon>
+      Vendidos com prejuízo
+    </h3>
+    <p class="grafico-sub">O custo cadastrado é maior que o preço de venda. Confira o preço ou o custo desses produtos.</p>
+    <ul class="prejuizo-lista">
+      @for (i of comPrejuizo; track i.nomeProduto) {
+      <li><span>{{ i.nomeProduto }}</span><strong>{{ real(i.lucro) }}</strong></li>
+      }
+    </ul>
+  </section>
+  }
+</div>
+
+<p class="graficos-nota nao-imprimir">Passe o mouse (ou use Tab) sobre uma barra para ver os detalhes. Todos os valores estão na visão Tabela.</p>
+
+<!-- Barras horizontais ranqueadas: nome | barra | valor na ponta; detalhes no hover e no foco -->
+<!-- reserva: espaço (px) para o valor na ponta da maior barra -->
+<ng-template #barras let-lista let-vazio="vazio" let-reserva="reserva">
+  @if (lista.length) {
+  <ol class="barras">
+    @for (b of lista; track b.nome) {
+    <li class="barra" tabindex="0" [attr.aria-label]="b.nome + ': ' + b.rotulo + '. ' + b.detalhes.join('. ')">
+      <span class="barra-nome" [title]="b.nome">{{ b.nome }}</span>
+      <span class="barra-area">
+        <span class="barra-fill" [style.width]="'calc((100% - ' + reserva + 'px) * ' + b.fracao + ')'"></span>
+        <span class="barra-rotulo">{{ b.rotulo }}</span>
+      </span>
+      <span class="dica" aria-hidden="true">
+        <strong>{{ b.rotulo }}</strong>
+        <span>{{ b.nome }}</span>
+        @for (d of b.detalhes; track $index) { <span class="dica-extra">{{ d }}</span> }
+      </span>
+    </li>
+    }
+  </ol>
+  } @else {
+  <p class="grafico-vazio">{{ vazio }}</p>
+  }
+</ng-template>
