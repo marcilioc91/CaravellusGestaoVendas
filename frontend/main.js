@@ -2,8 +2,23 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const { verificarAtualizacao } = require('./atualizacao');
 
 let javaProcess = null;
+
+// Encerra o backend e espera o processo sair (no maximo 5 s).
+// O instalador da atualizacao substitui app.jar e java.exe: com o Java vivo, os arquivos ficam travados.
+function pararBackend() {
+  return new Promise((resolve) => {
+    if (!javaProcess || javaProcess.exitCode !== null) return resolve();
+    const limite = setTimeout(resolve, 5000);
+    javaProcess.once('exit', () => {
+      clearTimeout(limite);
+      resolve();
+    });
+    javaProcess.kill();
+  });
+}
 
 function startBackend() {
   const resourcesPath = app.isPackaged 
@@ -71,18 +86,20 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, 'dist/caravellus-frontend/browser/index.html'));
+  return win;
 }
 
 app.whenReady().then(() => {
   startBackend();
   registrarExportacaoPdf();
-  createWindow();
+  const win = createWindow();
+
+  // Espera a tela carregar para o alerta nao aparecer sobre uma janela em branco
+  win.webContents.once('did-finish-load', () => verificarAtualizacao(win, pararBackend));
 });
 
-app.on('window-all-closed', () => {
-  if (javaProcess) {
-    javaProcess.kill();
-  }
+app.on('window-all-closed', async () => {
+  await pararBackend(); // antes do quit: o instalador da atualizacao roda logo em seguida
   if (process.platform !== 'darwin') {
     app.quit();
   }
