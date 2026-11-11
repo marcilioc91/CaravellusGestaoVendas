@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -77,6 +77,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: false, // aparece ja maximizada (ready-to-show), sem piscar no tamanho 1200x800
     icon: path.join(__dirname, 'src/assets/logoPC.ico'),
     webPreferences: {
       nodeIntegration: false,
@@ -85,11 +86,20 @@ function createWindow() {
     }
   });
 
+  win.once('ready-to-show', () => {
+    win.maximize();
+    win.show();
+  });
+
   win.loadFile(path.join(__dirname, 'dist/caravellus-frontend/browser/index.html'));
   return win;
 }
 
 app.whenReady().then(() => {
+  // Sem a barra File/Edit/View no app instalado (some tambem Ctrl+R, zoom e DevTools).
+  // Em desenvolvimento (npm run electron) o menu fica, para abrir o DevTools.
+  if (app.isPackaged) Menu.setApplicationMenu(null);
+
   startBackend();
   registrarExportacaoPdf();
   const win = createWindow();
