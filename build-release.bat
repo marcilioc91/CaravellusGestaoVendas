@@ -2,6 +2,10 @@
 setlocal EnableDelayedExpansion
 chcp 65001 > nul
 
+:: Uso:
+::   build-release.bat          gera o instalador com a versao atual do frontend\package.json
+::   build-release.bat 1.4.1    atualiza a versao (package.json, package-lock.json, READMEs) e gera
+
 echo.
 echo ============================================
 echo   BUILD - Caravellus
@@ -28,6 +32,17 @@ for %%P in (spring.mail.username spring.mail.password app.mail.remetente) do (
     if !errorlevel! neq 0 (
         echo.
         echo ERRO: %%P vazio em %EMAIL_PADRAO%
+        pause
+        exit /b 1
+    )
+)
+
+:: ---- Versao (opcional): atualiza todos os arquivos antes do build ----
+if not "%~1"=="" (
+    echo.
+    echo Atualizando a versao para %~1...
+    node "%ROOT%ferramentas\atualizar-versao.js" "%~1"
+    if !errorlevel! neq 0 (
         pause
         exit /b 1
     )
@@ -126,5 +141,11 @@ echo   BUILD CONCLUIDO COM SUCESSO!
 echo ============================================
 echo.
 echo Executável disponibilizado na pasta: %ELECTRON_DIR%\%SAIDA_DIR%
+echo.
+for /f "usebackq delims=" %%V in (`node -p "require('./package.json').version"`) do set VERSAO_TAG=v%%V
+echo Proximos passos:
+echo   1. git commit -am "Versao %VERSAO_TAG%"  e  git tag %VERSAO_TAG%
+echo   2. git push origin main --tags
+echo   3. Release %VERSAO_TAG% no GitHub com o .exe, o .exe.blockmap e o latest.yml dessa pasta
 echo.
 pause
