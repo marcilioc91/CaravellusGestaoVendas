@@ -28,7 +28,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
   providers: [provideNgxMask()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ativacao.html',
-  styleUrl: './ativacao.css',
+  styleUrls: ['../../shared/fundo-marca/fundo-marca.css', './ativacao.css'],
 })
 export class Ativacao implements OnInit {
   status: LicencaStatus | null = null;

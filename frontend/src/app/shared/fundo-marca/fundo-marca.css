@@ -1,0 +1,55 @@
+/*
+ * Fundo com a imagem da marca (login e ativacao).
+ * Uso: inclua este arquivo em styleUrls do componente. Escurecimento ajustavel por
+ * --fundo-escurecer no :host do componente (padrao 0.45).
+ *
+ * A imagem e 16:9 (1671x941). Em tela ate 16:9, "cover" corta so as laterais, sem perder nada importante.
+ * Em tela mais larga (ultrawide), "cover" cortaria o topo e o rodape, levando o titulo
+ * "Caravellus Sistemas". Nesse caso a imagem e dividida ao meio:
+ *   ::before -> metade esquerda (logo e linhas neon), presa a esquerda, na altura da tela
+ *   ::after  -> metade direita (titulo e veleiro), presa a direita, na altura da tela
+ *   :host    -> faixa central da imagem esticada na horizontal, preenchendo o espaco entre as metades
+ * O centro da imagem e um degrade azul liso, entao a emenda nao aparece.
+ */
+
+:host {
+    --fundo-camada: linear-gradient(rgba(0, 0, 0, var(--fundo-escurecer, 0.45)), rgba(0, 0, 0, var(--fundo-escurecer, 0.45)));
+
+    position: relative;
+    isolation: isolate; /* as metades (z-index -1) ficam atras do conteudo, mas na frente do fundo do :host */
+    background: var(--fundo-camada), url('../../../assets/background.jpg') center / cover no-repeat;
+}
+
+:host::before,
+:host::after {
+    content: '';
+    display: none;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    aspect-ratio: 1671 / 1882; /* metade da imagem: (1671 / 2) / 941 */
+    z-index: -1;
+    pointer-events: none;
+}
+
+@media (min-aspect-ratio: 1671 / 941) {
+    :host {
+        /* 3000%: mostra so ~3% do centro da imagem, esticado ate as bordas das metades */
+        background: var(--fundo-camada), url('../../../assets/background.jpg') center / 3000% 100% no-repeat;
+    }
+
+    :host::before,
+    :host::after {
+        display: block;
+    }
+
+    :host::before {
+        left: 0;
+        background: var(--fundo-camada), url('../../../assets/background.jpg') left center / auto 100% no-repeat;
+    }
+
+    :host::after {
+        right: 0;
+        background: var(--fundo-camada), url('../../../assets/background.jpg') right center / auto 100% no-repeat;
+    }
+}

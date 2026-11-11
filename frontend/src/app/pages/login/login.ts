@@ -36,7 +36,7 @@ import { Logo } from '../../shared/logo/logo';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrls: ['../../shared/fundo-marca/fundo-marca.css', './login.css'],
 })
 export class Login {
   conta = {

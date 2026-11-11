@@ -1,14 +1,8 @@
 :host {
+    /* Fundo com a imagem: shared/fundo-marca/fundo-marca.css */
+    --fundo-escurecer: 0.6;
     min-height: 100vh;
     display: flex;
-
-    background:
-        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-        url('../../../assets/background.jpg');
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
 .ativacao-container {

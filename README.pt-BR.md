@@ -14,7 +14,7 @@
 
 O Caravellus é um aplicativo desktop para Windows que gerencia a cantina de acampamentos e conferências: clientes, produtos, vendas, estoque e contas em aberto, além de usuários, auditoria e relatórios. Não precisa de servidor de banco nem de Java instalado, roda em computador modesto e funciona sem internet. Só a recuperação de senha e o pedido de licença usam a rede.
 
-Versão atual: **1.4.0**.
+Versão atual: **1.4.1**.
 
 ---
 

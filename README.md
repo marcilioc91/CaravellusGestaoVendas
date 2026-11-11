@@ -14,7 +14,7 @@
 
 Caravellus is a Windows desktop app that runs the cafeteria at church camps and conferences: customers, products, sales, stock and running tabs, plus users, auditing and reports. It needs no database server and no installed Java, runs on modest hardware, and works offline. Only password recovery and license requests use the internet.
 
-Current version: **1.4.0**. The user interface is in Brazilian Portuguese; screen names below are given in English with the original in parentheses.
+Current version: **1.4.1**. The user interface is in Brazilian Portuguese; screen names below are given in English with the original in parentheses.
 
 ---
 
