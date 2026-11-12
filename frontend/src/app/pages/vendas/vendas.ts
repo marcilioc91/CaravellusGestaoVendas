@@ -289,6 +289,11 @@ export class Vendas implements OnInit, AfterViewInit {
     });
   }
 
+  /** Atalho Esc (App): não sai da tela com itens no carrinho, para não perder a venda */
+  podeVoltarComEsc(): boolean {
+    return this.carrinho.length === 0;
+  }
+
   quantidadeTotalNoCarrinho(): number {
     return this.carrinho.reduce((acc, item) => acc + item.quantidade, 0);
   }

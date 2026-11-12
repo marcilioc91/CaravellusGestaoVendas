@@ -7,4 +7,4 @@
   <p class="tela-inicial-dica">Em computadores mais lentos, a abertura pode levar até um minuto.</p>
 </div>
 }
-<router-outlet></router-outlet>
+<router-outlet (activate)="aoAtivarTela($event)"></router-outlet>

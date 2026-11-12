@@ -1,13 +1,14 @@
 <div class="gerenciar-container">
 
   <div class="gerenciar-header">
-    <button mat-icon-button (click)="voltar()" title="Voltar">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
     <h2 class="gerenciar-titulo">
       <mat-icon>manage_accounts</mat-icon>
       Gerenciar Usuários
     </h2>
+    <button mat-stroked-button class="btn-voltar" (click)="voltar()">
+      <mat-icon>arrow_back</mat-icon>
+      Voltar
+    </button>
   </div>
 
   @if (carregando) {

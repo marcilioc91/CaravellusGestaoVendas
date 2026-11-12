@@ -1,9 +1,6 @@
 <div class="relatorio-container">
 
   <div class="relatorio-header">
-    <button mat-icon-button (click)="voltar()" title="Voltar">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
     <h2 class="relatorio-titulo">
       <mat-icon>bar_chart</mat-icon>
       Desempenho de Vendas
@@ -21,6 +18,10 @@
     <button mat-stroked-button class="nao-imprimir" [disabled]="exportandoPdf || !itens.length" (click)="imprimir()">
       <mat-icon>print</mat-icon>
       Imprimir A4
+    </button>
+    <button mat-stroked-button class="btn-voltar" (click)="voltar()">
+      <mat-icon>arrow_back</mat-icon>
+      Voltar
     </button>
   </div>
 

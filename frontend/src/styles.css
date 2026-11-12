@@ -219,6 +219,11 @@ body {
 
 /* PDF e impressão: o Electron exporta com printBackground, então o fundo decorativo da página
    apareceria abaixo do conteúdo. Na impressão o fundo é sempre branco. */
+/* Botão Voltar: sempre no canto direito do cabeçalho das telas */
+.btn-voltar {
+  margin-left: auto;
+}
+
 @media print {
   body {
     background: #fff !important;
