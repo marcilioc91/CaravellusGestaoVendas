@@ -41,6 +41,10 @@
     border-radius: 8px;
 }
 
+.login-erro-eventos {
+    color: var(--cor-erro);
+}
+
 .cadastro-link {
     color: var(--primary-color);
 }

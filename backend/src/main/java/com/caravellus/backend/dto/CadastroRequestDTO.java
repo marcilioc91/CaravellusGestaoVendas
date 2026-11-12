@@ -11,6 +11,8 @@ public class CadastroRequestDTO {
     private String usuario;
     private String senha;
     private String obs;
+    /** Evento escolhido na tela de login: o novo usuário vira cliente dele */
+    private String evento;
     /** true: grava mesmo havendo cadastro parecido (o usuário confirmou que é outra pessoa) */
     private boolean confirmarDuplicidade;
     /** "Sou eu": cria o acesso para este cadastro existente, apontado pelo aviso de duplicidade */

@@ -1,5 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { EventoService } from '../../services/evento.service';
+import { Evento } from '../../models/evento';
+import { catchError, forkJoin, of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -38,22 +41,54 @@ import { Logo } from '../../shared/logo/logo';
   templateUrl: './login.html',
   styleUrls: ['../../shared/fundo-marca/fundo-marca.css', './login.css'],
 })
-export class Login {
+export class Login implements OnInit {
   conta = {
     login: '',
-    senha: ''
+    senha: '',
+    evento: ''
   }
+
+  /** Eventos ativos, para escolher no login */
+  eventos: Evento[] = [];
+  erroEventos = '';
 
   constructor(
     private auth: AuthService,
+    private eventoService: EventoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) { }
 
+  /** Abre com o último usuário e o último evento usados neste computador (o backend grava a cada login) */
+  ngOnInit() {
+    forkJoin({
+      eventos: this.eventoService.listarAtivos(),
+      ultimo: this.auth.ultimoAcesso().pipe(catchError(() => of({ usuario: '', evento: '' }))),
+    }).subscribe({
+      next: ({ eventos, ultimo }) => {
+        this.eventos = eventos;
+        this.erroEventos = eventos.length === 0 ? 'Nenhum evento ativo.' : '';
+        if (!this.conta.login) {
+          this.conta.login = ultimo.usuario;
+        }
+        if (eventos.some(e => e.codigo === ultimo.evento)) {
+          this.conta.evento = ultimo.evento;
+        } else if (eventos.length === 1) {
+          this.conta.evento = eventos[0].codigo;
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.erroEventos = 'Não foi possível carregar os eventos.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   login() {
-    if (!this.conta.login || !this.conta.senha) {
+    if (!this.conta.login || !this.conta.senha || !this.conta.evento) {
       return;
     }
     this.auth.login(this.conta).subscribe({
@@ -69,6 +104,9 @@ export class Login {
           this.snackBar.open('Erro de conexão. Tente novamente.', 'Fechar', { duration: 3000 });
         } else if (err.status === 401) {
           this.snackBar.open('Login ou senha inválidos.', 'Fechar', { duration: 3000 });
+        } else if (err.status === 400 && typeof err.error === 'string') {
+          // Evento inexistente ou desativado depois que a tela abriu
+          this.snackBar.open(err.error, 'Fechar', { duration: 4000 });
         } else {
           this.snackBar.open('Erro inesperado. Tente novamente.', 'Fechar', { duration: 3000 });
         }
@@ -89,6 +127,7 @@ export class Login {
       login: usuario.usuarioLogin,
       senhaAtual: this.conta.senha,
       nome: usuario.pessoa?.nome || usuario.usuarioLogin,
+      evento: this.conta.evento,
     };
     const dialogRef = this.dialog.open(TrocarSenhaDialog, { width: '420px', disableClose: true, data: dados });
 
@@ -105,9 +144,13 @@ export class Login {
   }
 
   abrirCadastro() {
+    if (!this.conta.evento) {
+      this.snackBar.open('Selecione o evento antes de se cadastrar.', 'Fechar', { duration: 3000 });
+      return;
+    }
     const dialogRef = this.dialog.open(CadastroModal, {
       width: '400px',
-      data: { modo: 'usuario' }
+      data: { modo: 'usuario', evento: this.conta.evento }
     });
 
     dialogRef.afterClosed().subscribe(result => {

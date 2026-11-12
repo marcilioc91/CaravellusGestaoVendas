@@ -1,5 +1,6 @@
 package com.caravellus.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,4 +26,9 @@ public class Produto {
     /** Só muda pelos endpoints de imagem; null = produto sem imagem */
     @Column(insertable = false, updatable = false)
     private Long imagemVersao;
+
+    /** Evento dono do registro; vem sempre da sessao (nunca do JSON enviado pelo frontend) */
+    @JsonIgnore
+    @Column(name = "EVENTO_CODIGO", nullable = false, updatable = false)
+    private String eventoCodigo;
 }

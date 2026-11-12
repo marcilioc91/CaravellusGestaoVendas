@@ -1,0 +1,93 @@
+<div class="eventos-container">
+
+  <div class="eventos-header">
+    <button mat-icon-button (click)="voltar()" title="Voltar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 class="eventos-titulo">
+      <mat-icon>event</mat-icon>
+      Eventos
+    </h2>
+  </div>
+
+  <p class="eventos-ajuda">
+    Cada evento tem os próprios clientes, categorias, produtos, estoque, vendas e auditoria.
+    O evento é escolhido na tela de login. Os usuários valem para todos os eventos.
+    O código é gerado automaticamente.
+  </p>
+
+  <form class="eventos-novo" (ngSubmit)="incluir()">
+    <mat-form-field appearance="outline" class="eventos-campo-nome">
+      <mat-label>Nome do evento</mat-label>
+      <input matInput name="nome" [(ngModel)]="novoNome" maxlength="100" autocomplete="off">
+    </mat-form-field>
+
+    <button mat-raised-button class="btn-cor-entrar eventos-incluir" type="submit" [disabled]="!podeIncluir()">
+      <mat-icon>add</mat-icon>
+      Incluir
+    </button>
+  </form>
+
+  @if (carregando) {
+  <div class="eventos-loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Carregando eventos...</p>
+  </div>
+  } @else {
+  <div class="eventos-tabela-wrapper">
+    <table mat-table [dataSource]="eventos" class="eventos-tabela mat-elevation-z2">
+
+      <ng-container matColumnDef="codigo">
+        <th mat-header-cell *matHeaderCellDef>Código</th>
+        <td mat-cell *matCellDef="let e"><span class="eventos-codigo">{{ e.codigo }}</span></td>
+      </ng-container>
+
+      <ng-container matColumnDef="nome">
+        <th mat-header-cell *matHeaderCellDef>Nome</th>
+        <td mat-cell *matCellDef="let e">
+          {{ e.nome }}
+          @if (e.codigo === eventoAtual) {
+          <span class="eventos-atual">você está aqui</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="criacao">
+        <th mat-header-cell *matHeaderCellDef>Criado em</th>
+        <td mat-cell *matCellDef="let e">{{ e.dataCriacao | date: 'dd/MM/yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="situacao">
+        <th mat-header-cell *matHeaderCellDef>Situação</th>
+        <td mat-cell *matCellDef="let e">
+          <span class="eventos-badge" [class.inativo]="e.ativo === false">{{ e.ativo === false ? 'Inativo' : 'Ativo' }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acao">
+        <th mat-header-cell *matHeaderCellDef>Ações</th>
+        <td mat-cell *matCellDef="let e">
+          <div class="eventos-acoes">
+            <button mat-icon-button (click)="renomear(e)" title="Renomear">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-stroked-button (click)="alternarAtivo(e)">
+              <mat-icon>{{ e.ativo === false ? 'visibility' : 'visibility_off' }}</mat-icon>
+              {{ e.ativo === false ? 'Reativar' : 'Desativar' }}
+            </button>
+            <button mat-icon-button class="eventos-icone-excluir" (click)="excluir(e)"
+              [disabled]="e.codigo === eventoAtual"
+              [title]="e.codigo === eventoAtual ? 'Você está neste evento. Para excluí-lo, entre em outro evento.' : 'Excluir evento e todos os dados'">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+      <tr mat-row *matRowDef="let row; columns: colunas;" [class.eventos-linha-inativa]="row.ativo === false"></tr>
+    </table>
+  </div>
+  }
+
+</div>

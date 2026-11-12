@@ -23,8 +23,20 @@
             </button>
         </mat-form-field>
 
+        <mat-form-field class="full-width">
+            <mat-label>Evento</mat-label>
+            <mat-select [(ngModel)]="conta.evento" name="evento" [disabled]="eventos.length === 0">
+                @for (e of eventos; track e.codigo) {
+                <mat-option [value]="e.codigo">{{ e.nome }}</mat-option>
+                }
+            </mat-select>
+            @if (erroEventos) {
+            <mat-hint class="login-erro-eventos">{{ erroEventos }}</mat-hint>
+            }
+        </mat-form-field>
+
         <button mat-raised-button class="Btn-entrar btn-cor-entrar" (click)="login()"
-            [disabled]="!conta.login || (!conta.senha || conta.senha.length < 6 && conta.login != 'admin')">
+            [disabled]="!conta.evento || !conta.login || (!conta.senha || conta.senha.length < 6 && conta.login != 'admin')">
             Entrar
         </button>
 

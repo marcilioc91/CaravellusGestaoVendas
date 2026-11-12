@@ -75,6 +75,12 @@ export const routes: Routes = [
           import('./pages/auditoria/auditoria').then(m => m.Auditoria),
       },
       {
+        path: 'eventos',
+        canActivate: [loginGuard, adminGuard],
+        loadComponent: () =>
+          import('./pages/eventos/eventos').then(m => m.Eventos),
+      },
+      {
         path: 'gerenciar-usuarios',
         canActivate: [loginGuard, adminGuard],
         loadComponent: () =>

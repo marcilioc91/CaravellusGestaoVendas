@@ -27,7 +27,7 @@ public class VendaController {
             @RequestBody VendaRequestDTO dto,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.ok(service.realizarVenda(dto, usuario.id(), usuario.nome()));
+            return ResponseEntity.ok(service.realizarVenda(dto, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -36,13 +36,14 @@ public class VendaController {
     @GetMapping
     public List<Venda> listarTodas(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
-        return service.listarPorPeriodo(inicio, fim);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.listarPorPeriodo(inicio, fim, usuario.evento());
     }
 
     @GetMapping("/cliente/{clienteId}")
-    public List<Venda> listarPorCliente(@PathVariable Long clienteId) {
-        return service.listarPorCliente(clienteId);
+    public List<Venda> listarPorCliente(@PathVariable Long clienteId, @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.listarPorCliente(clienteId, usuario.evento());
     }
 
     @PatchMapping("/{id}/pagamento")
@@ -50,15 +51,16 @@ public class VendaController {
             @PathVariable Long id,
             @RequestBody PagamentoRequestDTO dto,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        return service.atualizarPagamento(id, dto, usuario.id(), usuario.nome());
+        return service.atualizarPagamento(id, dto, usuario);
     }
 
     @SomenteAdmin
     @GetMapping("/relatorio/inventario")
     public ResponseEntity<?> relatorioInventario(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
-        return ResponseEntity.ok(service.gerarRelatorioInventario(inicio, fim));
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
+            @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return ResponseEntity.ok(service.gerarRelatorioInventario(inicio, fim, usuario.evento()));
     }
 
     @PutMapping("/{id}/itens")
@@ -67,7 +69,7 @@ public class VendaController {
             @RequestBody VendaRequestDTO dto,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.ok(service.atualizarItens(id, dto, usuario.id(), usuario.nome()));
+            return ResponseEntity.ok(service.atualizarItens(id, dto, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -78,6 +80,6 @@ public class VendaController {
     public void excluir(
             @PathVariable Long id,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        service.excluir(id, usuario.id(), usuario.nome());
+        service.excluir(id, usuario);
     }
 }

@@ -1,5 +1,6 @@
 package com.caravellus.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,4 +23,9 @@ public class AuditoriaLog {
     private String descricao;
 
     private LocalDateTime dataHora;
+
+    /** null: operacao fora de um evento (troca e recuperacao de senha, cadastro de usuario) */
+    @JsonIgnore
+    @Column(name = "EVENTO_CODIGO", updatable = false)
+    private String eventoCodigo;
 }

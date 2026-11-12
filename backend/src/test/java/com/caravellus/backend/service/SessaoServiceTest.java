@@ -14,20 +14,21 @@ class SessaoServiceTest {
     private final SessaoService sessoes = new SessaoService();
 
     @Test
-    void tokenAbertoIdentificaUsuarioEPerfil() {
-        String token = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.ADMIN));
+    void tokenAbertoIdentificaUsuarioPerfilEEvento() {
+        String token = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.ADMIN), "0001");
 
         UsuarioSessao sessao = sessoes.validar(token).orElseThrow();
         assertEquals(1L, sessao.id());
         assertEquals("Maria", sessao.nome());
         assertTrue(sessao.isAdmin());
+        assertEquals("0001", sessao.evento());
     }
 
     @Test
     void tokensSaoAleatoriosEImprevisiveis() {
         Usuario u = usuario(1L, "Maria", PerfilUsuario.OPERADOR);
-        String a = sessoes.abrir(u);
-        String b = sessoes.abrir(u);
+        String a = sessoes.abrir(u, "0001");
+        String b = sessoes.abrir(u, "0001");
 
         assertNotEquals(a, b);
         assertEquals(43, a.length(), "32 bytes em Base64 URL sem padding");
@@ -44,8 +45,8 @@ class SessaoServiceTest {
     @Test
     void logoutEncerraSoAquelaSessao() {
         Usuario u = usuario(1L, "Maria", PerfilUsuario.OPERADOR);
-        String pc = sessoes.abrir(u);
-        String notebook = sessoes.abrir(u);
+        String pc = sessoes.abrir(u, "0001");
+        String notebook = sessoes.abrir(u, "0001");
 
         sessoes.encerrar(pc);
 
@@ -55,9 +56,9 @@ class SessaoServiceTest {
 
     @Test
     void trocaDePerfilOuSenhaDerrubaTodasAsSessoesDoUsuario() {
-        String maria1 = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.OPERADOR));
-        String maria2 = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.OPERADOR));
-        String joao = sessoes.abrir(usuario(2L, "João", PerfilUsuario.OPERADOR));
+        String maria1 = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.OPERADOR), "0001");
+        String maria2 = sessoes.abrir(usuario(1L, "Maria", PerfilUsuario.OPERADOR), "0001");
+        String joao = sessoes.abrir(usuario(2L, "João", PerfilUsuario.OPERADOR), "0001");
 
         sessoes.encerrarDoUsuario(1L);
 
@@ -69,7 +70,7 @@ class SessaoServiceTest {
     @Test
     void semNomeDePessoaUsaOLogin() {
         Usuario u = usuario(3L, null, PerfilUsuario.OPERADOR);
-        assertEquals("login3", sessoes.validar(sessoes.abrir(u)).orElseThrow().nome());
+        assertEquals("login3", sessoes.validar(sessoes.abrir(u, "0001")).orElseThrow().nome());
     }
 
     private static Usuario usuario(Long id, String nome, PerfilUsuario perfil) {

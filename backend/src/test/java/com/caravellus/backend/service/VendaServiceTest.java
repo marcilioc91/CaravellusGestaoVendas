@@ -6,6 +6,7 @@ import com.caravellus.backend.dto.VendaProdutoRequestDTO;
 import com.caravellus.backend.dto.VendaRequestDTO;
 import com.caravellus.backend.entity.AuditoriaLog;
 import com.caravellus.backend.entity.Cliente;
+import com.caravellus.backend.entity.Evento;
 import com.caravellus.backend.entity.Pessoa;
 import com.caravellus.backend.entity.Produto;
 import com.caravellus.backend.entity.Usuario;
@@ -13,16 +14,19 @@ import com.caravellus.backend.entity.Venda;
 import com.caravellus.backend.entity.VendaItem;
 import com.caravellus.backend.repository.AuditoriaLogRepository;
 import com.caravellus.backend.repository.ClienteRepository;
+import com.caravellus.backend.repository.EventoRepository;
 import com.caravellus.backend.repository.PessoaRepository;
 import com.caravellus.backend.repository.ProdutoRepository;
 import com.caravellus.backend.repository.UsuarioRepository;
 import com.caravellus.backend.repository.VendaRepository;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,9 +34,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Regras de venda contra o banco real: baixa e estorno de estoque, estoque insuficiente (com rollback),
- * reajuste de preço só em vendas pendentes e auditoria das alterações.
+ * reajuste de preço só em vendas pendentes, auditoria das alterações e separação por evento.
  */
 class VendaServiceTest extends IntegracaoTest {
+
+    /** Evento criado pela migration V9; OUTRO_EVENTO é criado pelo próprio teste */
+    private static final String EVENTO = "0001";
+    private static final String OUTRO_EVENTO = "TST2";
 
     @Autowired private VendaService vendaService;
     @Autowired private ProdutoService produtoService;
@@ -42,14 +50,17 @@ class VendaServiceTest extends IntegracaoTest {
     @Autowired private PessoaRepository pessoaRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private AuditoriaLogRepository auditoriaRepository;
+    @Autowired private EventoRepository eventoRepository;
 
     private Usuario operador;
+    private UsuarioSessao sessao;
     private Cliente cliente;
 
     @BeforeEach
     void preparar() {
         operador = usuarioRepository.findByUsuarioLogin("admin").orElseThrow();
-        cliente = novoCliente();
+        sessao = new UsuarioSessao(operador.getId(), "Teste", operador.getPerfil(), EVENTO);
+        cliente = novoCliente(EVENTO);
     }
 
     @Test
@@ -94,7 +105,7 @@ class VendaServiceTest extends IntegracaoTest {
 
         assertEquals(10, estoque(bolo), "o primeiro item não pode ter baixado o estoque");
         assertEquals(1, estoque(cafe));
-        assertTrue(vendaRepository.findByClienteIdComItens(cliente.getId()).isEmpty(), "nenhuma venda gravada");
+        assertTrue(vendaRepository.findByClienteIdComItens(EVENTO, cliente.getId()).isEmpty(), "nenhuma venda gravada");
     }
 
     @Test
@@ -113,7 +124,7 @@ class VendaServiceTest extends IntegracaoTest {
         Venda venda = vender(cliente, "PENDENTE", "0", item(suco, 4));
 
         vendaService.atualizarItens(venda.getId(), pedido(cliente, "PENDENTE", "0", item(suco, 1), item(salgado, 3)),
-                operador.getId(), "Teste");
+                sessao);
 
         assertEquals(9, estoque(suco));
         assertEquals(7, estoque(salgado));
@@ -128,12 +139,12 @@ class VendaServiceTest extends IntegracaoTest {
         assertEquals(0, estoque(sorvete));
 
         // Os 2 devolvidos voltam a valer: trocar 2 por 2 é permitido mesmo com estoque zerado
-        vendaService.atualizarItens(venda.getId(), pedido(cliente, "PIX", "14.00", item(sorvete, 2)), operador.getId(), "Teste");
+        vendaService.atualizarItens(venda.getId(), pedido(cliente, "PIX", "14.00", item(sorvete, 2)), sessao);
         assertEquals(0, estoque(sorvete));
 
         // Pedir 3 não cabe: a venda continua como estava e nada volta ao estoque
         assertThrows(IllegalArgumentException.class, () -> vendaService.atualizarItens(
-                venda.getId(), pedido(cliente, "PIX", "21.00", item(sorvete, 3)), operador.getId(), "Teste"));
+                venda.getId(), pedido(cliente, "PIX", "21.00", item(sorvete, 3)), sessao));
         assertEquals(0, estoque(sorvete));
         assertEquals(2, vendaDoCliente(cliente).getItens().getFirst().getQuantidade());
     }
@@ -144,17 +155,17 @@ class VendaServiceTest extends IntegracaoTest {
         Venda venda = vender(cliente, "PENDENTE", "0", item(chocolate, 5));
         assertEquals(1, estoque(chocolate));
 
-        vendaService.excluir(venda.getId(), operador.getId(), "Teste");
+        vendaService.excluir(venda.getId(), sessao);
 
         assertEquals(6, estoque(chocolate));
-        assertTrue(vendaRepository.findByClienteIdComItens(cliente.getId()).isEmpty());
+        assertTrue(vendaRepository.findByClienteIdComItens(EVENTO, cliente.getId()).isEmpty());
         assertNotNull(ultimaAuditoria("EXCLUSAO_VENDA", "Venda #" + venda.getId() + " "));
     }
 
     @Test
     void vendaInexistenteDa404() {
         ResponseStatusException erro = assertThrows(ResponseStatusException.class,
-                () -> vendaService.excluir(999_999_999L, operador.getId(), "Teste"));
+                () -> vendaService.excluir(999_999_999L, sessao));
         assertEquals(404, erro.getStatusCode().value());
     }
 
@@ -166,7 +177,7 @@ class VendaServiceTest extends IntegracaoTest {
         PagamentoRequestDTO pagamento = new PagamentoRequestDTO();
         pagamento.setFormaPagamento("PIX");
         pagamento.setValorPago(new BigDecimal("10"));
-        vendaService.atualizarPagamento(venda.getId(), pagamento, operador.getId(), "Teste");
+        vendaService.atualizarPagamento(venda.getId(), pagamento, sessao);
 
         assertEquals("PIX", vendaDoCliente(cliente).getFormaPagamento());
         AuditoriaLog log = ultimaAuditoria("ALTERACAO_PAGAMENTO_VENDA", "venda #" + venda.getId() + " ");
@@ -176,22 +187,62 @@ class VendaServiceTest extends IntegracaoTest {
     @Test
     void novoPrecoReajustaSoVendasPendentes() {
         Produto x = novoProduto("Cachorro-quente", "8.00", 20);
-        Cliente outro = novoCliente();
+        Cliente outro = novoCliente(EVENTO);
         vender(cliente, "PENDENTE", "0", item(x, 1));
         vender(outro, "PIX", "8.00", item(x, 1));
 
         Produto alterado = produtoRepository.findById(x.getId()).orElseThrow();
         alterado.setPreco(new BigDecimal("9.00"));
-        produtoService.salvar(alterado, operador.getId(), "Teste");
+        produtoService.salvar(alterado, sessao);
 
         assertEquals(0, new BigDecimal("9.00").compareTo(precoDoItem(vendaDoCliente(cliente), x)), "pendente: preço novo");
         assertEquals(0, new BigDecimal("8.00").compareTo(precoDoItem(vendaDoCliente(outro), x)), "quitada: preço da venda");
     }
 
+    @Test
+    void produtoEClienteDeOutroEventoNaoEntramNaVenda() {
+        UsuarioSessao noOutro = new UsuarioSessao(operador.getId(), "Teste", operador.getPerfil(), outroEvento());
+        Produto daqui = novoProduto("Refri", "6.00", 5);
+        Cliente deLa = novoCliente(OUTRO_EVENTO);
+
+        IllegalArgumentException produto = assertThrows(IllegalArgumentException.class,
+                () -> vendaService.realizarVenda(pedido(deLa, "PIX", "6.00", item(daqui, 1)), noOutro));
+        assertTrue(produto.getMessage().contains("Produto não encontrado"), produto.getMessage());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> vendaService.realizarVenda(pedido(cliente, "PIX", "6.00", item(daqui, 1)), noOutro),
+                "cliente do evento 0001 não pode comprar no outro evento");
+        assertEquals(5, estoque(daqui));
+    }
+
+    @Test
+    void vendaDeOutroEventoContaComoInexistente() {
+        Produto pastel = novoProduto("Pastel", "8.00", 5);
+        Venda venda = vender(cliente, "PENDENTE", "0", item(pastel, 1));
+        UsuarioSessao noOutro = new UsuarioSessao(operador.getId(), "Teste", operador.getPerfil(), outroEvento());
+
+        ResponseStatusException erro = assertThrows(ResponseStatusException.class,
+                () -> vendaService.excluir(venda.getId(), noOutro));
+        assertEquals(404, erro.getStatusCode().value());
+        assertEquals(4, estoque(pastel), "a venda continua lá, sem devolver estoque");
+        assertTrue(vendaService.listarTodas(OUTRO_EVENTO).stream().noneMatch(v -> v.getId().equals(venda.getId())));
+    }
+
     // ── apoio ────────────────────────────────────────────────────────────────
 
+    private String outroEvento() {
+        if (!eventoRepository.existsById(OUTRO_EVENTO)) {
+            Evento e = new Evento();
+            e.setCodigo(OUTRO_EVENTO);
+            e.setNome("EVENTO DE TESTE 2");
+            e.setDataCriacao(LocalDateTime.now());
+            eventoRepository.save(e);
+        }
+        return OUTRO_EVENTO;
+    }
+
     private Venda vender(Cliente c, String forma, String valorPago, VendaProdutoRequestDTO... itens) {
-        return vendaService.realizarVenda(pedido(c, forma, valorPago, itens), operador.getId(), "Teste");
+        return vendaService.realizarVenda(pedido(c, forma, valorPago, itens), sessao);
     }
 
     private static VendaRequestDTO pedido(Cliente c, String forma, String valorPago, VendaProdutoRequestDTO... itens) {
@@ -216,13 +267,16 @@ class VendaServiceTest extends IntegracaoTest {
         p.setPreco(new BigDecimal(preco));
         p.setPreco_custo(BigDecimal.ONE);
         p.setEstoque(estoque);
+        p.setEventoCodigo(EVENTO);
         return produtoRepository.save(p);
     }
 
-    private Cliente novoCliente() {
+    private Cliente novoCliente(String evento) {
+        if (!evento.equals(EVENTO)) outroEvento();
         Pessoa pessoa = new Pessoa();
         pessoa.setNome("CLIENTE TESTE " + sufixo());
         Cliente c = new Cliente();
+        c.setEventoCodigo(evento);
         c.setPessoa(pessoaRepository.save(pessoa));
         return clienteRepository.save(c);
     }
@@ -232,7 +286,7 @@ class VendaServiceTest extends IntegracaoTest {
     }
 
     private Venda vendaDoCliente(Cliente c) {
-        List<Venda> vendas = vendaRepository.findByClienteIdComItens(c.getId());
+        List<Venda> vendas = vendaRepository.findByClienteIdComItens(EVENTO, c.getId());
         assertEquals(1, vendas.size());
         return vendas.getFirst();
     }

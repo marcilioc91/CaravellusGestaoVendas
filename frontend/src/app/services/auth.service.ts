@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { LoginRequest, Usuario } from '../models/usuario';
+import { Evento } from '../models/evento';
 
 export interface CadastroRequest {
   nome: string;
@@ -14,6 +15,14 @@ export interface CadastroRequest {
   confirmarDuplicidade?: boolean;
   /** "Sou eu": cria o acesso para este cadastro existente */
   pessoaIdExistente?: number;
+  /** Evento escolhido na tela de login: o novo usuário vira cliente dele */
+  evento?: string;
+}
+
+/** Último login feito neste computador (ultimo-acesso.ini na pasta de dados) */
+export interface UltimoAcesso {
+  usuario: string;
+  evento: string;
 }
 
 /** Cliente já cadastrado com o CPF informado no cadastro de usuário */
@@ -35,6 +44,10 @@ export class AuthService {
     return this.http.post<Usuario>(this.api + "/login", loginRequest)
   }
 
+  ultimoAcesso() {
+    return this.http.get<UltimoAcesso>(this.api + "/ultimo-acesso")
+  }
+
   cadastrar(dados: CadastroRequest) {
     return this.http.post(this.api + "/cadastro", dados)
   }
@@ -44,8 +57,9 @@ export class AuthService {
     return this.http.get<ClienteExistente>(`${this.api}/cadastro/cliente-por-cpf/${cpf.replace(/\D/g, '')}`)
   }
 
-  trocarSenha(login: string, senhaAtual: string, novaSenha: string) {
-    return this.http.post<Usuario>(this.api + "/trocar-senha", { login, senhaAtual, novaSenha })
+  /** Depois da troca, a sessão abre no evento escolhido na tela de login */
+  trocarSenha(login: string, senhaAtual: string, novaSenha: string, evento: string) {
+    return this.http.post<Usuario>(this.api + "/trocar-senha", { login, senhaAtual, novaSenha, evento })
   }
 
   solicitarRecuperacaoSenha(identificador: string) {
@@ -72,6 +86,11 @@ export class AuthService {
   /** Token enviado em "Authorization: Bearer" (ver auth.interceptor) */
   getToken(): string | null {
     return this.getUsuarioLogado()?.token ?? null;
+  }
+
+  /** Evento da sessão (o backend usa o da sessão; aqui é só para mostrar na tela) */
+  getEventoAtual(): Evento | null {
+    return this.getUsuarioLogado()?.evento ?? null;
   }
 
   /** Só controla o que a tela mostra: o backend confere o perfil pelo token */

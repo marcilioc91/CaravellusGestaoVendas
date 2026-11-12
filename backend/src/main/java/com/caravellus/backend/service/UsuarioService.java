@@ -38,6 +38,9 @@ public class UsuarioService {
     @Autowired
     private DuplicidadeService duplicidadeService;
 
+    @Autowired
+    private EventoService eventoService;
+
     public List<Usuario> listarTodos() {
         return repository.findAll();
     }
@@ -115,9 +118,13 @@ public class UsuarioService {
         return pessoa;
     }
 
-    /** Cadastra o usuário; se o CPF já for de um cliente, reaproveita a pessoa (promoção de cliente a usuário). */
+    /**
+     * Cadastra o usuário; se o CPF já for de um cliente, reaproveita a pessoa (promoção de cliente a usuário).
+     * O usuário vale para todos os eventos e vira cliente do evento escolhido na tela de login.
+     */
     @Transactional
     public Usuario cadastrar(CadastroRequestDTO dto) {
+        String evento = eventoService.buscarAtivo(dto.getEvento()).getCodigo();
         String cpf = dto.getCpf();
         String cpfLimpo = null;
         Pessoa existente = null;
@@ -166,11 +173,12 @@ public class UsuarioService {
         usuario.setPerfil(PerfilUsuario.OPERADOR);
         usuario = repository.save(usuario);
 
-        // Todo usuário também é cliente; na promoção o cliente já existe (com o histórico de compras)
-        if (!promocao || clienteRepository.findByPessoa(pessoa).isEmpty()) {
+        // Todo usuário também é cliente do evento em que se cadastrou; na promoção o cliente pode já existir
+        if (clienteRepository.findByPessoaAndEventoCodigo(pessoa, evento).isEmpty()) {
             Cliente cliente = new Cliente();
             cliente.setPessoa(pessoa);
             cliente.setObs(dto.getObs());
+            cliente.setEventoCodigo(evento);
             clienteRepository.save(cliente);
         }
 

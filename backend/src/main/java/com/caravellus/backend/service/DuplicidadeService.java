@@ -50,9 +50,14 @@ public class DuplicidadeService {
         return chaveA != null && chaveA.equals(chaveTelefone(telefoneB)) && primeiroNome(a).equals(primeiroNome(b));
     }
 
-    /** Lança DuplicidadeException se houver pessoa semelhante já cadastrada. */
+    /** Lança DuplicidadeException se houver pessoa semelhante já cadastrada (em todo o sistema). */
     public void verificar(String nome, String telefone) {
-        List<Pessoa> encontradas = semelhantes(nome, telefone);
+        verificar(nome, telefone, pessoaRepository.findAll());
+    }
+
+    /** Lança DuplicidadeException se houver pessoa semelhante entre as candidatas (ex.: clientes do evento). */
+    public void verificar(String nome, String telefone, Collection<Pessoa> candidatas) {
+        List<Pessoa> encontradas = semelhantes(nome, telefone, candidatas);
         if (!encontradas.isEmpty()) {
             throw new DuplicidadeException(encontradas.stream().map(this::paraDto).toList());
         }

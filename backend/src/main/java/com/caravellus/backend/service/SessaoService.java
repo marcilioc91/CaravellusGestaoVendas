@@ -22,8 +22,11 @@ public class SessaoService {
     /** Sessão sem uso por mais tempo que isso expira */
     static final Duration INATIVIDADE = Duration.ofHours(12);
 
-    /** Usuário dono da sessão; o nome vai para a auditoria */
-    public record UsuarioSessao(Long id, String nome, PerfilUsuario perfil) {
+    /**
+     * Usuário dono da sessão; o nome vai para a auditoria.
+     * evento: código do evento escolhido no login; todas as consultas e gravações usam este evento.
+     */
+    public record UsuarioSessao(Long id, String nome, PerfilUsuario perfil, String evento) {
         public boolean isAdmin() {
             return perfil == PerfilUsuario.ADMIN;
         }
@@ -41,14 +44,14 @@ public class SessaoService {
     private final SecureRandom random = new SecureRandom();
     private final Map<String, Sessao> sessoes = new ConcurrentHashMap<>();
 
-    public String abrir(Usuario usuario) {
+    public String abrir(Usuario usuario, String eventoCodigo) {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         String nome = usuario.getPessoa() != null && usuario.getPessoa().getNome() != null
                 ? usuario.getPessoa().getNome()
                 : usuario.getUsuarioLogin();
-        sessoes.put(token, new Sessao(new UsuarioSessao(usuario.getId(), nome, usuario.getPerfil())));
+        sessoes.put(token, new Sessao(new UsuarioSessao(usuario.getId(), nome, usuario.getPerfil(), eventoCodigo)));
         return token;
     }
 
@@ -72,5 +75,10 @@ public class SessaoService {
     /** Perfil alterado ou senha redefinida: o usuário precisa entrar de novo */
     public void encerrarDoUsuario(Long usuarioId) {
         sessoes.values().removeIf(s -> s.usuario.id().equals(usuarioId));
+    }
+
+    /** Evento excluído: quem estava nele precisa entrar de novo, em outro evento */
+    public void encerrarDoEvento(String evento) {
+        sessoes.values().removeIf(s -> evento.equals(s.usuario.evento()));
     }
 }

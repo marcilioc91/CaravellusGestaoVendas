@@ -1,5 +1,6 @@
 package com.caravellus.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,4 +33,9 @@ public class Venda {
 
     private String formaPagamento;
     private BigDecimal valorPago;
+
+    /** Evento dono do registro; vem sempre da sessao (nunca do JSON enviado pelo frontend) */
+    @JsonIgnore
+    @Column(name = "EVENTO_CODIGO", nullable = false, updatable = false)
+    private String eventoCodigo;
 }

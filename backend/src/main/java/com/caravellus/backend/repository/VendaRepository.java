@@ -11,6 +11,7 @@ import com.caravellus.backend.entity.Venda;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VendaRepository extends JpaRepository<Venda, Integer> {
@@ -21,18 +22,30 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
             + "LEFT JOIN FETCH v.usuario u LEFT JOIN FETCH u.pessoa "
             + "LEFT JOIN FETCH v.itens i LEFT JOIN FETCH i.produto p LEFT JOIN FETCH p.categoria ";
 
-    @Query(SELECT_COMPLETO)
-    List<Venda> findAllComItens();
+    @Query(SELECT_COMPLETO + "WHERE v.eventoCodigo = :evento")
+    List<Venda> findAllComItens(@Param("evento") String evento);
 
-    @Query(SELECT_COMPLETO + "WHERE c.id = :clienteId")
-    List<Venda> findByClienteIdComItens(@Param("clienteId") Long clienteId);
+    @Query(SELECT_COMPLETO + "WHERE v.eventoCodigo = :evento AND c.id = :clienteId")
+    List<Venda> findByClienteIdComItens(@Param("evento") String evento, @Param("clienteId") Long clienteId);
 
-    @Query(SELECT_COMPLETO + "WHERE v.data_venda >= :inicio AND v.data_venda < :fim")
-    List<Venda> findPeriodoComItens(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+    @Query(SELECT_COMPLETO + "WHERE v.eventoCodigo = :evento AND v.data_venda >= :inicio AND v.data_venda < :fim")
+    List<Venda> findPeriodoComItens(@Param("evento") String evento,
+                                    @Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    Optional<Venda> findByIdAndEventoCodigo(Long id, String eventoCodigo);
+
+    long countByEventoCodigo(String eventoCodigo);
+
+    /** Exclusão do evento: itens primeiro (chave estrangeira para VENDA) */
+    @Modifying
+    @Query("DELETE FROM VendaItem vi WHERE vi.venda.id IN (SELECT v.id FROM Venda v WHERE v.eventoCodigo = :evento)")
+    int excluirItensDoEvento(@Param("evento") String evento);
+
+    @Modifying
+    @Query("DELETE FROM Venda v WHERE v.eventoCodigo = :evento")
+    int excluirDoEvento(@Param("evento") String evento);
 
     List<Venda> findByClienteId(Long clienteId);
-
-    List<Venda> findByUsuarioId(Long usuarioId);
 
     @Modifying
     @Query(

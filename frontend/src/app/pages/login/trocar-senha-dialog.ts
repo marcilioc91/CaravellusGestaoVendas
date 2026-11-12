@@ -13,6 +13,8 @@ export interface TrocarSenhaDados {
   login: string;
   senhaAtual: string;
   nome: string;
+  /** Evento escolhido na tela de login */
+  evento: string;
 }
 
 // ── Diálogo de troca obrigatória de senha (primeiro acesso) ───────────────────
@@ -47,7 +49,7 @@ export class TrocarSenhaDialog {
     if (!this.podeSalvar() || this.enviando) return;
     this.enviando = true;
     this.erro = '';
-    this.auth.trocarSenha(this.data.login, this.data.senhaAtual, this.novaSenha).subscribe({
+    this.auth.trocarSenha(this.data.login, this.data.senhaAtual, this.novaSenha, this.data.evento).subscribe({
       next: usuario => this.dialogRef.close(usuario),
       error: (err: HttpErrorResponse) => {
         this.enviando = false;

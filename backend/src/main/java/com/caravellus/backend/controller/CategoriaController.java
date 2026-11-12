@@ -18,8 +18,8 @@ public class CategoriaController {
     private CategoriaService service;
 
     @GetMapping
-    public List<Categoria> listar() {
-        return service.listar();
+    public List<Categoria> listar(@RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.listar(usuario.evento());
     }
 
     @PostMapping
@@ -28,7 +28,7 @@ public class CategoriaController {
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             categoria.setId(null);
-            return ResponseEntity.status(201).body(service.salvar(categoria, usuario.id(), usuario.nome()));
+            return ResponseEntity.status(201).body(service.salvar(categoria, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -41,7 +41,7 @@ public class CategoriaController {
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             categoria.setId(id);
-            return ResponseEntity.ok(service.salvar(categoria, usuario.id(), usuario.nome()));
+            return ResponseEntity.ok(service.salvar(categoria, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -52,7 +52,7 @@ public class CategoriaController {
             @PathVariable Long id,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            service.excluir(id, usuario.id(), usuario.nome());
+            service.excluir(id, usuario);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());

@@ -24,15 +24,15 @@ public class ProdutoController {
     private ProdutoService service;
 
     @GetMapping
-    public List<Produto> listar() {
-        return service.listar();
+    public List<Produto> listar(@RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.listar(usuario.evento());
     }
 
     @PostMapping
     public Produto salvar(
             @RequestBody Produto produto,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        return service.salvar(produto, usuario.id(), usuario.nome());
+        return service.salvar(produto, usuario);
     }
 
     @PutMapping("/{id}")
@@ -41,14 +41,14 @@ public class ProdutoController {
             @RequestBody Produto produto,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         produto.setId(id);
-        return service.salvar(produto, usuario.id(), usuario.nome());
+        return service.salvar(produto, usuario);
     }
 
     @DeleteMapping("/{id}")
     public void excluir(
             @PathVariable Long id,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        service.excluir(id, usuario.id(), usuario.nome());
+        service.excluir(id, usuario);
     }
 
     /**
@@ -71,13 +71,13 @@ public class ProdutoController {
             @PathVariable Long id,
             @RequestParam("arquivo") MultipartFile arquivo,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) throws IOException {
-        service.salvarImagem(id, arquivo.getContentType(), arquivo.getBytes(), usuario.id(), usuario.nome());
+        service.salvarImagem(id, arquivo.getContentType(), arquivo.getBytes(), usuario);
     }
 
     @DeleteMapping("/{id}/imagem")
     public void removerImagem(
             @PathVariable Long id,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        service.removerImagem(id, usuario.id(), usuario.nome());
+        service.removerImagem(id, usuario);
     }
 }

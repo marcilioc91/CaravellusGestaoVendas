@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -14,6 +14,8 @@ import { cpfValido, emailValido, formatarTelefone, SENHA_TAMANHO_MINIMO, senhaVa
 
 export interface CadastroModalData {
   modo: 'usuario' | 'cliente';
+  /** Modo usuário: evento escolhido na tela de login (o novo usuário vira cliente dele) */
+  evento?: string;
 }
 
 @Component({
@@ -42,6 +44,14 @@ export class CadastroModal {
     usuario: '',
     senha: '',
     obs: ''
+  }
+
+  /**
+   * Tela "Dados para Login": o campo Login é criado de novo cada vez que a tela aparece (@if do step),
+   * e este setter roda nesse momento. O setTimeout espera o campo estar na tela para receber o foco.
+   */
+  @ViewChild('campoLogin') set campoLogin(campo: ElementRef<HTMLInputElement> | undefined) {
+    if (campo) setTimeout(() => campo.nativeElement.focus());
   }
 
   /** CPF de um cliente já cadastrado: o cadastro cria o acesso para ele (promoção a usuário) */
@@ -184,6 +194,7 @@ export class CadastroModal {
       usuario: this.conta.usuario,
       senha: this.conta.senha,
       obs: this.conta.obs || undefined,
+      evento: this.data.evento,
       ...opcoes
     }).subscribe({
       next: () => this.dialogRef.close(true),

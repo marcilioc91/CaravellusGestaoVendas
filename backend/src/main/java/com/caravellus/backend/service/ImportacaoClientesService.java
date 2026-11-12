@@ -7,6 +7,7 @@ import com.caravellus.backend.entity.Cliente;
 import com.caravellus.backend.entity.Pessoa;
 import com.caravellus.backend.repository.ClienteRepository;
 import com.caravellus.backend.repository.PessoaRepository;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import com.caravellus.backend.util.LeitorCsv;
 import com.caravellus.backend.util.ValidacaoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,10 +59,14 @@ public class ImportacaoClientesService {
     @Autowired
     private AuditoriaService auditoriaService;
 
-    /** confirmar=false só monta a prévia; confirmar=true grava os novos clientes (tudo ou nada). */
+    /**
+     * confirmar=false só monta a prévia; confirmar=true grava os novos clientes no evento da sessão (tudo ou nada).
+     * Duplicidade é conferida entre os clientes do evento. CPF de pessoa que já existe no sistema (cliente de
+     * outro evento ou usuário) reaproveita o cadastro dela.
+     */
     @Transactional
-    public ImportacaoClientesDTO importar(byte[] conteudo, String nomeArquivo, boolean confirmar,
-                                         Long usuarioId, String usuarioNome) {
+    public ImportacaoClientesDTO importar(byte[] conteudo, String nomeArquivo, boolean confirmar, UsuarioSessao usuario) {
+        String evento = usuario.evento();
         List<List<String>> registros = LeitorCsv.ler(conteudo);
         if (registros.size() < 2) {
             throw new IllegalArgumentException("O arquivo não tem clientes para importar.");
@@ -72,9 +77,13 @@ public class ImportacaoClientesService {
             throw new IllegalArgumentException("Coluna de nome não encontrada: o cabeçalho precisa ter \"Nome\" ou \"Nome completo\".");
         }
 
-        List<Pessoa> cadastradas = pessoaRepository.findAll();
+        List<Pessoa> cadastradas = clienteRepository.findByEventoCodigo(evento).stream().map(Cliente::getPessoa).toList();
         Set<String> cpfsCadastrados = new HashSet<>();
         cadastradas.stream().map(Pessoa::getCpf).filter(c -> c != null && !c.isBlank()).forEach(cpfsCadastrados::add);
+        // Pessoas de todo o sistema com CPF: quem já existe vira cliente deste evento sem duplicar o cadastro
+        Map<String, Pessoa> pessoasPorCpf = new HashMap<>();
+        pessoaRepository.findAll().stream().filter(p -> p.getCpf() != null && !p.getCpf().isBlank())
+                .forEach(p -> pessoasPorCpf.put(p.getCpf(), p));
 
         // Novos do próprio arquivo, para detectar repetição dentro dele
         List<Pessoa> novas = new ArrayList<>();
@@ -124,6 +133,10 @@ public class ImportacaoClientesService {
                 continue;
             }
 
+            Pessoa existente = cpf != null ? pessoasPorCpf.get(cpf) : null;
+            if (existente != null) {
+                avisos.add("Já cadastrado em outro evento ou como usuário: usa o cadastro existente.");
+            }
             Pessoa pessoa = new Pessoa();
             pessoa.setNome(nome);
             pessoa.setCpf(cpf);
@@ -137,14 +150,15 @@ public class ImportacaoClientesService {
 
             if (confirmar) {
                 Cliente cliente = new Cliente();
-                cliente.setPessoa(pessoaRepository.save(pessoa));
+                cliente.setPessoa(existente != null ? existente : pessoaRepository.save(pessoa));
                 cliente.setObs(obs);
+                cliente.setEventoCodigo(evento);
                 clienteRepository.save(cliente);
             }
         }
 
         if (confirmar && resultado.getIncluidos() > 0) {
-            auditoriaService.registrar(usuarioId, usuarioNome, "IMPORTACAO_CLIENTES",
+            auditoriaService.registrar(usuario, "IMPORTACAO_CLIENTES",
                     "Importação do arquivo '" + (nomeArquivo == null ? "" : nomeArquivo) + "': "
                             + resultado.getIncluidos() + " cliente(s) incluído(s), "
                             + resultado.getIgnorados() + " ignorado(s) por já estarem cadastrados, "

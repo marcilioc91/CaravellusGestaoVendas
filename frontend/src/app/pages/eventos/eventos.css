@@ -1,0 +1,131 @@
+.eventos-container {
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.eventos-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.eventos-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  color: var(--texto-forte);
+  margin: 0;
+}
+
+.eventos-ajuda {
+  color: var(--texto-suave);
+  margin: 0 0 24px;
+}
+
+.eventos-novo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.eventos-campo-nome {
+  flex: 1;
+  min-width: 220px;
+}
+
+.eventos-incluir {
+  height: 56px;
+  border-radius: 8px;
+}
+
+.eventos-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 60px;
+  color: var(--texto-medio);
+}
+
+.eventos-tabela-wrapper {
+  overflow-x: auto;
+}
+
+.eventos-tabela {
+  width: 100%;
+}
+
+.eventos-codigo {
+  font-family: monospace;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.eventos-atual {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  color: var(--primary-color);
+}
+
+.eventos-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cor-sucesso);
+  background: color-mix(in srgb, var(--cor-sucesso) 14%, transparent);
+}
+
+.eventos-badge.inativo {
+  color: var(--texto-apagado);
+  background: color-mix(in srgb, var(--texto-apagado) 14%, transparent);
+}
+
+.eventos-linha-inativa td {
+  color: var(--texto-apagado);
+}
+
+.eventos-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eventos-dialog-sub {
+  color: var(--texto-suave);
+  margin-top: 0;
+}
+
+.eventos-icone-excluir:not(:disabled) {
+  color: var(--cor-erro);
+}
+
+.eventos-excluir-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-erro);
+}
+
+.eventos-excluir-lista {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+}
+
+.eventos-excluir-aviso {
+  font-weight: 600;
+  color: var(--cor-erro);
+}
+
+.eventos-btn-excluir {
+  --mat-button-protected-container-color: var(--cor-erro);
+  --mat-button-protected-label-text-color: #ffffff;
+}

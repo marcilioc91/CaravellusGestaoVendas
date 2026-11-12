@@ -46,10 +46,14 @@ const USUARIOS: Operacao = {
   icone: 'manage_accounts', titulo: 'Gerenciar Usuários', descricao: 'Perfis de acesso e senhas', rota: '/gerenciar-usuarios',
   somenteAdmin: true,
 };
+const EVENTOS: Operacao = {
+  icone: 'event', titulo: 'Eventos', descricao: 'Acampamentos, conferências e outros eventos', rota: '/eventos',
+  somenteAdmin: true,
+};
 
 const SECOES: Secao[] = [
   { titulo: 'Movimentações', operacoes: [NOVA_VENDA, HISTORICO] },
-  { titulo: 'Cadastros', operacoes: [CLIENTES, PRODUTOS, CATEGORIAS] },
+  { titulo: 'Cadastros', operacoes: [EVENTOS, CLIENTES, CATEGORIAS, PRODUTOS] },
   { titulo: 'Relatórios e Controle', operacoes: [DESEMPENHO, AUDITORIA] },
   { titulo: 'Administração', operacoes: [USUARIOS] },
 ];
@@ -69,6 +73,8 @@ const SECOES: Secao[] = [
 export class Home {
   readonly nomeUsuario: string;
   readonly primeiroNome: string;
+  /** Evento escolhido no login */
+  readonly nomeEvento: string;
   readonly secoes: Secao[];
   readonly destaques = [NOVA_VENDA, HISTORICO];
   readonly atalhos: Operacao[];
@@ -79,6 +85,7 @@ export class Home {
     const usuario = this.auth.getUsuarioLogado();
     this.nomeUsuario = usuario?.pessoa?.nome ?? usuario?.usuarioLogin ?? '';
     this.primeiroNome = this.formatarPrimeiroNome(this.nomeUsuario);
+    this.nomeEvento = this.auth.getEventoAtual()?.nome ?? '';
 
     const admin = this.auth.isAdmin();
     const permitida = (o: Operacao) => admin || !o.somenteAdmin;

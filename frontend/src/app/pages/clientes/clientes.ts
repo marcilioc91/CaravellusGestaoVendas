@@ -232,7 +232,7 @@ export class Clientes implements OnInit, AfterViewInit {
       width: '380px',
       data: {
         titulo: 'Excluir cliente',
-        mensagem: `Deseja excluir "${cliente.pessoa.nome}"? Todas as vendas, o usuário e os dados pessoais vinculados serão removidos permanentemente.`,
+        mensagem: `Deseja excluir "${cliente.pessoa.nome}"? Todas as vendas dele neste evento serão removidas permanentemente. Se ele também for usuário do sistema ou cliente em outro evento, o acesso e o cadastro dele lá continuam.`,
       },
       panelClass: 'confirm-dialog-panel'
     });

@@ -10,10 +10,13 @@ import com.caravellus.backend.dto.LoginRequestDTO;
 import com.caravellus.backend.dto.RecuperacaoSenhaDTO;
 import com.caravellus.backend.dto.ResetSenhaDTO;
 import com.caravellus.backend.dto.SessaoDTO;
+import com.caravellus.backend.entity.Evento;
 import com.caravellus.backend.dto.TrocarSenhaDTO;
 import com.caravellus.backend.entity.Usuario;
 import com.caravellus.backend.service.DuplicidadeException;
 import com.caravellus.backend.service.RecuperacaoSenhaService;
+import com.caravellus.backend.service.EventoService;
+import com.caravellus.backend.service.UltimoAcessoService;
 import com.caravellus.backend.service.SessaoService;
 import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import com.caravellus.backend.service.UsuarioService;
@@ -21,6 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -34,7 +39,16 @@ public class UsuarioController {
     @Autowired
     private SessaoService sessaoService;
 
-    /** Com trocarSenha pendente não abre sessão: o token só vem depois da troca (/trocar-senha). */
+    @Autowired
+    private EventoService eventoService;
+
+    @Autowired
+    private UltimoAcessoService ultimoAcessoService;
+
+    /**
+     * Com trocarSenha pendente não abre sessão: o token só vem depois da troca (/trocar-senha).
+     * A sessão abre no evento escolhido, que precisa estar ativo.
+     */
     @Publico
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
@@ -42,8 +56,22 @@ public class UsuarioController {
         if (encontrado == null) {
             return ResponseEntity.status(401).body("Login ou senha inválidos");
         }
-        String token = Boolean.TRUE.equals(encontrado.getTrocarSenha()) ? null : sessaoService.abrir(encontrado);
-        return ResponseEntity.ok(new SessaoDTO(encontrado, token));
+        Evento evento;
+        try {
+            evento = eventoService.buscarAtivo(loginRequest.getEvento());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+        String token = Boolean.TRUE.equals(encontrado.getTrocarSenha()) ? null : sessaoService.abrir(encontrado, evento.getCodigo());
+        ultimoAcessoService.registrar(encontrado.getUsuarioLogin(), evento.getCodigo());
+        return ResponseEntity.ok(new SessaoDTO(encontrado, token, evento));
+    }
+
+    /** Último usuário e evento usados (ultimo-acesso.ini): a tela de login abre com eles preenchidos */
+    @Publico
+    @GetMapping("/ultimo-acesso")
+    public Map<String, String> ultimoAcesso() {
+        return ultimoAcessoService.obter();
     }
 
     @PostMapping("/logout")
@@ -83,8 +111,10 @@ public class UsuarioController {
     @PostMapping("/trocar-senha")
     public ResponseEntity<?> trocarSenha(@RequestBody TrocarSenhaDTO dto) {
         try {
+            Evento evento = eventoService.buscarAtivo(dto.getEvento());
             Usuario usuario = service.trocarSenha(dto.getLogin(), dto.getSenhaAtual(), dto.getNovaSenha());
-            return ResponseEntity.ok(new SessaoDTO(usuario, sessaoService.abrir(usuario)));
+            ultimoAcessoService.registrar(usuario.getUsuarioLogin(), evento.getCodigo());
+            return ResponseEntity.ok(new SessaoDTO(usuario, sessaoService.abrir(usuario, evento.getCodigo()), evento));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }

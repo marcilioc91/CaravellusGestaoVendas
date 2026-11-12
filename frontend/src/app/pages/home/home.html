@@ -26,6 +26,14 @@
   <!-- PAINEL -->
   <main class="home-painel">
     <div class="home-topbar">
+      @if (nomeEvento) {
+      <!-- Estilo inline: home.css está no limite de tamanho (budget do angular.json) -->
+      <span class="home-usuario" style="margin-right: auto; color: var(--primary-color)"
+        title="Evento escolhido no login. Para trocar, saia e entre de novo.">
+        <mat-icon>event</mat-icon>
+        {{ nomeEvento }}
+      </span>
+      }
       <app-tema-toggle />
       <span class="home-usuario">
         <mat-icon>account_circle</mat-icon>

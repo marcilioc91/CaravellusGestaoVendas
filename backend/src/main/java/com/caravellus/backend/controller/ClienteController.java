@@ -26,8 +26,8 @@ public class ClienteController {
     private ImportacaoClientesService importacaoService;
 
     @GetMapping
-    public List<Cliente> listar() {
-        return service.listar();
+    public List<Cliente> listar(@RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
+        return service.listar(usuario.evento());
     }
 
     @PostMapping
@@ -36,7 +36,7 @@ public class ClienteController {
             @RequestParam(defaultValue = "false") boolean confirmarDuplicidade,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.status(201).body(service.salvar(cliente, confirmarDuplicidade, usuario.id(), usuario.nome()));
+            return ResponseEntity.status(201).body(service.salvar(cliente, confirmarDuplicidade, usuario));
         } catch (DuplicidadeException e) {
             return ResponseEntity.status(409).body(e.resposta());
         } catch (IllegalArgumentException e) {
@@ -52,7 +52,7 @@ public class ClienteController {
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
             return ResponseEntity.ok(importacaoService.importar(
-                    arquivo.getBytes(), arquivo.getOriginalFilename(), confirmar, usuario.id(), usuario.nome()));
+                    arquivo.getBytes(), arquivo.getOriginalFilename(), confirmar, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (IOException e) {
@@ -66,16 +66,21 @@ public class ClienteController {
             @RequestBody Cliente cliente,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
         try {
-            return ResponseEntity.ok(service.atualizar(id, cliente, usuario.id(), usuario.nome()));
+            return ResponseEntity.ok(service.atualizar(id, cliente, usuario));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public void excluir(
+    public ResponseEntity<?> excluir(
             @PathVariable Long id,
             @RequestAttribute(AutenticacaoInterceptor.USUARIO) UsuarioSessao usuario) {
-        service.excluir(id, usuario.id(), usuario.nome());
+        try {
+            service.excluir(id, usuario);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 }

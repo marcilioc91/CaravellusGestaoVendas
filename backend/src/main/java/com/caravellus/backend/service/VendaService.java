@@ -9,8 +9,10 @@ import com.caravellus.backend.entity.Produto;
 import com.caravellus.backend.entity.Usuario;
 import com.caravellus.backend.entity.Venda;
 import com.caravellus.backend.entity.VendaItem;
+import com.caravellus.backend.repository.ClienteRepository;
 import com.caravellus.backend.repository.ProdutoRepository;
 import com.caravellus.backend.repository.VendaRepository;
+import com.caravellus.backend.service.SessaoService.UsuarioSessao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,21 +47,27 @@ public class VendaService {
     private ProdutoRepository produtoRepository;
 
     @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
     private EntityManager entityManager;
 
     @Autowired
     private AuditoriaService auditoriaService;
 
     @Transactional
-    public Venda realizarVenda(VendaRequestDTO dto, Long usuarioId, String usuarioNome) {
+    public Venda realizarVenda(VendaRequestDTO dto, UsuarioSessao usuario) {
         if (dto.getClienteId() == null) {
             throw new IllegalArgumentException("Selecione o cliente da venda.");
         }
-        List<ItemConferido> itens = conferirItens(dto.getProdutos());
+        Cliente cliente = clienteRepository.findByIdAndEventoCodigo(dto.getClienteId(), usuario.evento())
+                .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado."));
+        List<ItemConferido> itens = conferirItens(dto.getProdutos(), usuario.evento());
 
         Venda venda = new Venda();
-        venda.setCliente(entityManager.getReference(Cliente.class, dto.getClienteId()));
-        venda.setUsuario(entityManager.getReference(Usuario.class, usuarioId));
+        venda.setEventoCodigo(usuario.evento());
+        venda.setCliente(cliente);
+        venda.setUsuario(entityManager.getReference(Usuario.class, usuario.id()));
         venda.setFormaPagamento(dto.getFormaPagamento());
         venda.setValorPago(dto.getValorPago());
         venda.setItens(new ArrayList<>());
@@ -67,45 +75,45 @@ public class VendaService {
 
         String itensDesc = gravarItens(venda, itens);
 
-        auditoriaService.registrar(usuarioId, usuarioNome, "VENDA",
+        auditoriaService.registrar(usuario, "VENDA",
                 "Venda #" + venda.getId() + " realizada. Itens: " + itensDesc);
 
         return venda;
     }
 
-    public List<Venda> listarTodas() {
-        return vendaRepository.findAllComItens();
+    public List<Venda> listarTodas(String evento) {
+        return vendaRepository.findAllComItens(evento);
     }
 
     /** Vendas do periodo (inicio e fim inclusivos); sem datas, devolve todas. */
-    public List<Venda> listarPorPeriodo(LocalDate inicio, LocalDate fim) {
-        if (inicio == null && fim == null) return listarTodas();
+    public List<Venda> listarPorPeriodo(LocalDate inicio, LocalDate fim, String evento) {
+        if (inicio == null && fim == null) return listarTodas(evento);
         LocalDateTime de = inicio != null ? inicio.atStartOfDay() : LocalDateTime.of(1900, 1, 1, 0, 0);
         LocalDateTime ate = fim != null ? fim.plusDays(1).atStartOfDay() : LocalDateTime.of(9999, 1, 1, 0, 0);
-        return vendaRepository.findPeriodoComItens(de, ate);
+        return vendaRepository.findPeriodoComItens(evento, de, ate);
     }
 
-    public List<Venda> listarPorCliente(Long clienteId) {
-        return vendaRepository.findByClienteIdComItens(clienteId);
+    public List<Venda> listarPorCliente(Long clienteId, String evento) {
+        return vendaRepository.findByClienteIdComItens(evento, clienteId);
     }
 
     @Transactional
-    public Venda atualizarPagamento(Long id, PagamentoRequestDTO dto, Long usuarioId, String usuarioNome) {
-        Venda venda = buscarVenda(id);
+    public Venda atualizarPagamento(Long id, PagamentoRequestDTO dto, UsuarioSessao usuario) {
+        Venda venda = buscarVenda(id, usuario.evento());
         String antes = descreverPagamento(venda.getFormaPagamento(), venda.getValorPago());
 
         venda.setFormaPagamento(dto.getFormaPagamento());
         venda.setValorPago(dto.getValorPago());
         Venda salva = vendaRepository.save(venda);
 
-        auditoriaService.registrar(usuarioId, usuarioNome, "ALTERACAO_PAGAMENTO_VENDA",
+        auditoriaService.registrar(usuario, "ALTERACAO_PAGAMENTO_VENDA",
                 "Pagamento da venda #" + id + " do cliente '" + nomeCliente(venda) + "' alterado de "
                         + antes + " para " + descreverPagamento(dto.getFormaPagamento(), dto.getValorPago()) + ".");
         return salva;
     }
 
-    public List<RelatorioInventarioItemDTO> gerarRelatorioInventario(LocalDate inicio, LocalDate fim) {
-        List<Venda> vendas = listarPorPeriodo(inicio, fim);
+    public List<RelatorioInventarioItemDTO> gerarRelatorioInventario(LocalDate inicio, LocalDate fim, String evento) {
+        List<Venda> vendas = listarPorPeriodo(inicio, fim, evento);
         Map<Long, RelatorioInventarioItemDTO> mapa = new LinkedHashMap<>();
 
         for (Venda v : vendas) {
@@ -143,8 +151,8 @@ public class VendaService {
      * O estoque disponível para os novos itens já conta o que foi devolvido.
      */
     @Transactional
-    public Venda atualizarItens(Long id, VendaRequestDTO dto, Long usuarioId, String usuarioNome) {
-        Venda venda = buscarVenda(id);
+    public Venda atualizarItens(Long id, VendaRequestDTO dto, UsuarioSessao usuario) {
+        Venda venda = buscarVenda(id, usuario.evento());
         String itensAntes = descreverItens(venda.getItens());
 
         for (VendaItem item : venda.getItens()) {
@@ -157,10 +165,10 @@ public class VendaService {
         venda.getItens().clear();
         vendaRepository.save(venda);
 
-        List<ItemConferido> itens = conferirItens(dto.getProdutos());
+        List<ItemConferido> itens = conferirItens(dto.getProdutos(), usuario.evento());
         String itensDepois = gravarItens(venda, itens);
 
-        auditoriaService.registrar(usuarioId, usuarioNome, "ALTERACAO_ITENS_VENDA",
+        auditoriaService.registrar(usuario, "ALTERACAO_ITENS_VENDA",
                 "Itens da venda #" + id + " do cliente '" + nomeCliente(venda) + "' alterados de ["
                         + itensAntes + "] para [" + itensDepois + "].");
 
@@ -169,8 +177,8 @@ public class VendaService {
 
     /** Exclui a venda e devolve ao estoque a quantidade de cada item */
     @Transactional
-    public void excluir(Long id, Long usuarioId, String usuarioNome) {
-        Venda venda = buscarVenda(id);
+    public void excluir(Long id, UsuarioSessao usuario) {
+        Venda venda = buscarVenda(id, usuario.evento());
 
         for (VendaItem item : venda.getItens()) {
             Produto p = item.getProduto();
@@ -182,7 +190,7 @@ public class VendaService {
         String nomeCliente = nomeCliente(venda);
         vendaRepository.delete(venda); // cascade = ALL em Venda.itens apaga os VENDA_ITEM junto
 
-        auditoriaService.registrar(usuarioId, usuarioNome, "EXCLUSAO_VENDA",
+        auditoriaService.registrar(usuario, "EXCLUSAO_VENDA",
                 "Venda #" + id + " do cliente '" + nomeCliente + "' excluída. Itens devolvidos ao estoque: " + itensDesc);
     }
 
@@ -193,7 +201,7 @@ public class VendaService {
     /** Produto já conferido e a quantidade total pedida dele */
     private record ItemConferido(Produto produto, int quantidade) {}
 
-    private List<ItemConferido> conferirItens(List<VendaProdutoRequestDTO> produtos) {
+    private List<ItemConferido> conferirItens(List<VendaProdutoRequestDTO> produtos, String evento) {
         if (produtos == null || produtos.isEmpty()) {
             throw new IllegalArgumentException("A venda precisa ter pelo menos um produto.");
         }
@@ -211,7 +219,7 @@ public class VendaService {
 
         List<ItemConferido> itens = new ArrayList<>();
         quantidades.forEach((produtoId, quantidade) -> {
-            Produto produto = produtoRepository.findById(produtoId)
+            Produto produto = produtoRepository.findByIdAndEventoCodigo(produtoId, evento)
                     .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + produtoId + "."));
             int disponivel = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (quantidade > disponivel) {
@@ -242,8 +250,9 @@ public class VendaService {
         return descreverItens(venda.getItens());
     }
 
-    private Venda buscarVenda(Long id) {
-        return vendaRepository.findById(id.intValue())
+    /** Venda de outro evento conta como inexistente */
+    private Venda buscarVenda(Long id, String evento) {
+        return vendaRepository.findByIdAndEventoCodigo(id, evento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada."));
     }
 
