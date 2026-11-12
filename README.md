@@ -4,7 +4,7 @@
 
 **Offline-first sales management for event cafeterias** — Java 25 · Spring Boot 4 · embedded Firebird 5 · Angular 21 + Electron
 
-![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F) ![Firebird](https://img.shields.io/badge/Firebird-5%20embedded-red) ![Angular](https://img.shields.io/badge/Angular-21-DD0031) ![Electron](https://img.shields.io/badge/Electron-41-47848F) ![Tests](https://img.shields.io/badge/tests-49%20passing-brightgreen)
+![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F) ![Firebird](https://img.shields.io/badge/Firebird-5%20embedded-red) ![Angular](https://img.shields.io/badge/Angular-21-DD0031) ![Electron](https://img.shields.io/badge/Electron-41-47848F) ![Tests](https://img.shields.io/badge/tests-51%20passing-brightgreen)
 
 **English** · [Português](README.pt-BR.md)
 
@@ -332,9 +332,9 @@ AUDITORIA_LOG (user, operation type, description, timestamp)
 
 ## Tests
 
-49 tests. Integration tests run against a real embedded Firebird database in `target/test-dados`, which Flyway creates on the first run; the mail sender is mocked. They cover:
+51 tests. Integration tests run against a real embedded Firebird database in `target/test-dados`, which Flyway creates on the first run; the mail sender is mocked. They cover:
 
-- **Sales:** stock deduction and return, insufficient stock with full rollback, repeated products, editing items, deleting sales, price changes applied only to pending sales, and the audit trail.
+- **Sales:** stock deduction and return, insufficient stock with full rollback, repeated products, editing items, deleting sales, price changes applied only to pending sales, isolation between events, and the audit trail.
 - **Password recovery:** code e-mailed, hash-only storage, single use, attempt limit and resend interval.
 - **Sessions:** token generation, logout, and revocation of all of a user's sessions.
 - **Licensing:** signature, machine binding, file format and tampering.

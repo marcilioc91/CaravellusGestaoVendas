@@ -4,7 +4,7 @@
 
 **Gestão de vendas offline para cantinas de eventos** — Java 25 · Spring Boot 4 · Firebird 5 embarcado · Angular 21 + Electron
 
-![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F) ![Firebird](https://img.shields.io/badge/Firebird-5%20embarcado-red) ![Angular](https://img.shields.io/badge/Angular-21-DD0031) ![Electron](https://img.shields.io/badge/Electron-41-47848F) ![Testes](https://img.shields.io/badge/testes-49%20passando-brightgreen)
+![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F) ![Firebird](https://img.shields.io/badge/Firebird-5%20embarcado-red) ![Angular](https://img.shields.io/badge/Angular-21-DD0031) ![Electron](https://img.shields.io/badge/Electron-41-47848F) ![Testes](https://img.shields.io/badge/testes-51%20passando-brightgreen)
 
 [English](README.md) · **Português**
 
@@ -332,9 +332,9 @@ AUDITORIA_LOG (usuário, tipo de operação, descrição, data/hora)
 
 ## Testes
 
-São 49 testes. Os de integração rodam contra um Firebird embarcado real em `target/test-dados`, criado pelo Flyway na primeira execução; o envio de e-mail é simulado. Eles cobrem:
+São 51 testes. Os de integração rodam contra um Firebird embarcado real em `target/test-dados`, criado pelo Flyway na primeira execução; o envio de e-mail é simulado. Eles cobrem:
 
-- **Vendas:** baixa e devolução de estoque, estoque insuficiente com rollback completo, produto repetido, edição de itens, exclusão de venda, preço novo aplicado só a vendas pendentes e registro na auditoria.
+- **Vendas:** baixa e devolução de estoque, estoque insuficiente com rollback completo, produto repetido, edição de itens, exclusão de venda, preço novo aplicado só a vendas pendentes, isolamento entre eventos e registro na auditoria.
 - **Recuperação de senha:** código enviado por e-mail, armazenamento só do hash, uso único, limite de tentativas e intervalo entre envios.
 - **Sessões:** geração de token, logout e derrubada de todas as sessões do usuário.
 - **Licença:** assinatura, vínculo com a máquina, formato do arquivo e adulteração.
