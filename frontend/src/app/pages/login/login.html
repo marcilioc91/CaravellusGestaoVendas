@@ -23,8 +23,8 @@
             </button>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" class="full-width" (click)="login()"
-            [disabled]="!conta.login || !conta.senha">
+        <button mat-raised-button class="Btn-entrar btn-cor-entrar" (click)="login()"
+            [disabled]="!conta.login || (!conta.senha || conta.senha.length < 6 && conta.login != 'admin')">
             Entrar
         </button>
 

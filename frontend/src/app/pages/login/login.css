@@ -27,6 +27,15 @@
     gap: 16px;
 }
 
+.Btn-entrar {
+    width: 100%;
+    border-radius: 8px;
+    --mat-button-protected-container-color: var(--background-color-btn-entrar);
+    --mat-button-protected-label-text-color: var(--texto-btn-entrar);
+    --mat-button-protected-hover-container-color: var(--background-color-btn-entrar);
+    --mat-button-protected-hover-label-text-color: var(--texto-btn-entrar);
+}
+
 .full-width {
     width: 100%;
     border-radius: 8px;

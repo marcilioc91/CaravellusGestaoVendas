@@ -6,12 +6,14 @@
   --accent-color: #2fa7d8;
   --background-color: #f3f7fb;
   --text-color: #1e3a5f;
+  --background-color-btn-entrar: #21a036;
 
   /* Textos */
   --texto-forte: #0f2a4a;
   --texto-medio: #2b5179;
   --texto-suave: #55657a;
   --texto-apagado: #888;
+  --texto-btn-entrar: #ffffff;
 
   /* Superfícies e bordas */
   --fundo-pagina:
@@ -44,11 +46,13 @@ body.tema-escuro {
   --accent-color: #4fc3f7;
   --background-color: #0d1b2e;
   --text-color: #dbe7f5;
+  --background-color-btn-entrar: #21732F;
 
   --texto-forte: #eef4fb;
   --texto-medio: #a9c1db;
   --texto-suave: #b4c0cf;
   --texto-apagado: #8796a8;
+  --texto-btn-entrar: #dbe7f5;
 
   --fundo-pagina:
     radial-gradient(circle at 20% 20%, rgba(224, 69, 123, 0.10), transparent 40%),
@@ -180,6 +184,13 @@ body {
   border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: tela-inicial-girar 0.9s linear infinite;
+}
+
+.btn-cor-entrar {
+  --mat-button-protected-container-color: var(--background-color-btn-entrar);
+  --mat-button-protected-label-text-color: var(--texto-btn-entrar);
+  --mat-button-protected-hover-container-color: var(--background-color-btn-entrar);
+  --mat-button-protected-hover-label-text-color: var(--texto-btn-entrar);
 }
 
 @keyframes tela-inicial-girar {

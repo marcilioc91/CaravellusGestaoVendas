@@ -37,7 +37,7 @@
 
 <mat-dialog-actions align="end">
     <button mat-button (click)="cancelar()">Sair</button>
-    <button mat-raised-button color="primary" [disabled]="!podeSalvar() || enviando" (click)="salvar()">
+    <button mat-raised-button class="btn-cor-entrar" color="primary" [disabled]="!podeSalvar() || enviando" (click)="salvar()">
         Salvar e entrar
     </button>
 </mat-dialog-actions>

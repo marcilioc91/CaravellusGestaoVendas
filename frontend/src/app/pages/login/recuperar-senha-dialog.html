@@ -68,17 +68,17 @@
 <mat-dialog-actions align="end">
     <button mat-button (click)="fechar()">Cancelar</button>
     @if (etapa === 'solicitar') {
-    <button mat-raised-button color="primary" [disabled]="!identificador.trim() || enviando" (click)="solicitar()">
+    <button mat-raised-button class="btn-cor-entrar" [disabled]="!identificador.trim() || enviando" (click)="solicitar()">
         @if (enviando) { <mat-spinner diameter="18" class="rec-spinner"></mat-spinner> }
         Enviar código
     </button>
     } @else if (etapa === 'codigo') {
-    <button mat-raised-button color="primary" [disabled]="!codigoCompleto() || enviando" (click)="validarCodigo()">
+    <button mat-raised-button class="btn-cor-entrar" [disabled]="!codigoCompleto() || enviando" (click)="validarCodigo()">
         @if (enviando) { <mat-spinner diameter="18" class="rec-spinner"></mat-spinner> }
         Validar código
     </button>
     } @else {
-    <button mat-raised-button color="primary" [disabled]="!podeRedefinir() || enviando" (click)="redefinir()">
+    <button mat-raised-button class="btn-cor-entrar" [disabled]="!podeRedefinir() || enviando || novaSenha.length < 6" (click)="redefinir()">
         @if (enviando) { <mat-spinner diameter="18" class="rec-spinner"></mat-spinner> }
         Redefinir senha
     </button>

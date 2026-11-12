@@ -15,5 +15,5 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button mat-button (click)="fechar()">Cancelar</button>
-    <button mat-raised-button color="primary" (click)="confirmar()">Redefinir</button>
+    <button mat-raised-button class="btn-cor-entrar" [disabled]="!novaSenha || novaSenha.length < 6" (click)="confirmar()">Redefinir</button>
 </mat-dialog-actions>
