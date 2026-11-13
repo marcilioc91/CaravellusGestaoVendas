@@ -19,7 +19,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
 import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
-import { Logo } from '../../shared/logo/logo';
 
 @Component({
   selector: 'app-login',
@@ -34,8 +33,7 @@ import { Logo } from '../../shared/logo/logo';
     MatIconModule,
     MatDialogModule,
     TemaToggle,
-    RodapeSistema,
-    Logo
+    RodapeSistema
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',

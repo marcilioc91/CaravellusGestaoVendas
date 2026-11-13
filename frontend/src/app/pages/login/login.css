@@ -16,11 +16,6 @@
     background: var(--fundo-painel);
 }
 
-.login-logo {
-    width: 60px;
-    height: 60px;
-}
-
 .login-form {
     display: flex;
     flex-direction: column;
