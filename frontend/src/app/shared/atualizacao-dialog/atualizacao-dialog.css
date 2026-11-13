@@ -1,0 +1,8 @@
+mat-dialog-content {
+  max-width: 460px;
+}
+
+.dica {
+  color: var(--texto-suave);
+  margin: 8px 0 0;
+}

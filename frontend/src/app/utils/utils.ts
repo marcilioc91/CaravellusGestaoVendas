@@ -101,6 +101,15 @@ export interface PonteElectron {
   escolherDestinoPdf(nomeSugerido: string): Promise<boolean>;
   gerarPdf(): Promise<string>;
   abrirUltimoPdf(): Promise<string>;
+
+  verificarAtualizacao(): Promise<void>;
+  baixarAtualizacao(): Promise<void>;
+  instalarAtualizacaoAgora(): Promise<void>;
+  /** Os "ao..." devolvem a funcao que remove o ouvinte */
+  aoAtualizacaoDisponivel(callback: (dados: { nova: string; atual: string }) => void): () => void;
+  aoProgressoAtualizacao(callback: (percentual: number) => void): () => void;
+  aoAtualizacaoBaixada(callback: (dados: { nova: string }) => void): () => void;
+  aoErroAtualizacao(callback: () => void): () => void;
 }
 
 declare global {

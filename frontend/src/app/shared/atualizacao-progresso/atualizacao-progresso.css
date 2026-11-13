@@ -1,0 +1,26 @@
+.painel {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1500;
+  width: 300px;
+  padding: 12px 16px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: var(--fundo-painel);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  color: var(--texto-medio);
+  font-size: 0.85rem;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.percentual {
+  font-weight: 600;
+  color: var(--texto-forte);
+}

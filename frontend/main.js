@@ -2,7 +2,7 @@ const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron')
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
-const { verificarAtualizacao } = require('./atualizacao');
+const { registrarAtualizacao } = require('./atualizacao');
 
 let javaProcess = null;
 
@@ -104,8 +104,8 @@ app.whenReady().then(() => {
   registrarExportacaoPdf();
   const win = createWindow();
 
-  // Espera a tela carregar para o alerta nao aparecer sobre uma janela em branco
-  win.webContents.once('did-finish-load', () => verificarAtualizacao(win, pararBackend));
+  // A verificacao parte do Angular (dialogo no sistema), depois que a primeira tela abre
+  registrarAtualizacao(win, pararBackend);
 });
 
 app.on('window-all-closed', async () => {

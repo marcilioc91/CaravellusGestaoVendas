@@ -1,0 +1,9 @@
+@if (atualizacao.download(); as download) {
+<div class="painel" role="status">
+  <div class="cabecalho">
+    <span>Baixando a versão {{ download.versao }}&hellip;</span>
+    <span class="percentual">{{ download.percentual }}%</span>
+  </div>
+  <mat-progress-bar mode="determinate" [value]="download.percentual" aria-label="Download da atualização" />
+</div>
+}

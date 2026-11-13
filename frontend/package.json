@@ -1,6 +1,6 @@
 {
   "name": "caravellus-frontend",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Frontend do Caravellus - Gestão de Vendas",
   "main": "main.js",
   "scripts": {

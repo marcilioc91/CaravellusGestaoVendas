@@ -1,0 +1,24 @@
+@if (data.modo === 'disponivel') {
+<h2 mat-dialog-title>Atualização disponível</h2>
+<mat-dialog-content>
+  <p>A versão <strong>{{ data.nova }}</strong> do Caravellus está disponível.</p>
+  <p class="dica">Você está usando a versão {{ data.atual }}.</p>
+  <p class="dica">O download acontece em segundo plano, e você pode continuar usando o sistema.
+    Os seus dados não serão apagados.</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false">Depois</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="true" cdkFocusInitial>Baixar agora</button>
+</mat-dialog-actions>
+} @else {
+<h2 mat-dialog-title>Atualização pronta</h2>
+<mat-dialog-content>
+  <p>A versão <strong>{{ data.nova }}</strong> foi baixada.</p>
+  <p class="dica">Ela será instalada quando você fechar o Caravellus. Se preferir, instale agora:
+    o sistema fecha e abre de novo já atualizado.</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="true">Reiniciar e instalar agora</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="false" cdkFocusInitial>Instalar ao fechar</button>
+</mat-dialog-actions>
+}

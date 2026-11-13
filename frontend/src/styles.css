@@ -176,14 +176,26 @@ body {
   color: var(--primary-color);
 }
 
-.tela-inicial-spinner {
-  width: 28px;
-  height: 28px;
-  margin-top: 14px;
-  border: 3px solid var(--borda);
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: tela-inicial-girar 0.9s linear infinite;
+/* Barra de carregamento da abertura: no index.html avanca so por CSS; no App segue o progresso estimado */
+.tela-inicial-barra {
+  width: 260px;
+  height: 6px;
+  margin-top: 16px;
+  border-radius: 3px;
+  background: var(--borda);
+  overflow: hidden;
+}
+
+.tela-inicial-barra-preenchimento {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color);
+  transition: width 0.3s ease-out;
+}
+
+.tela-inicial-barra-preenchimento.antes-do-angular {
+  animation: tela-inicial-barra-inicio 2s ease-out forwards;
 }
 
 .btn-cor-entrar {
@@ -193,9 +205,9 @@ body {
   --mat-button-protected-hover-label-text-color: var(--texto-btn-entrar);
 }
 
-@keyframes tela-inicial-girar {
+@keyframes tela-inicial-barra-inicio {
   to {
-    transform: rotate(360deg);
+    width: 15%;
   }
 }
 
