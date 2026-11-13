@@ -56,11 +56,10 @@
         <mat-form-field style="width:100%">
             <mat-label>Valor pago (R$)</mat-label>
             <input matInput
+            appValorMonetario
             [(ngModel)]="valorPago"
             name="valorPago"
-            type="number"
-            min="0"
-            step="0.01">
+            type="text">
         </mat-form-field>
 
         @if (valorPago < data.total) {

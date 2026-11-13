@@ -19,6 +19,7 @@ import { ClienteService } from '../../services/cliente.service';
 import { AuthService } from '../../services/auth.service';
 import { formatarTelefone, normalizarTexto, agruparPorCategoria, GrupoCategoria, secoesDoFiltro } from '../../utils/utils';
 import { Footer } from '../../footer/footer';
+import { ValorMonetarioDirective } from '../../shared/valor-monetario/valor-monetario.directive';
 
 interface ItemCarrinho {
   produto: Produto;
@@ -44,7 +45,8 @@ interface DadosConfirmacao {
     MatButtonModule,
     MatTableModule,
     MatIcon,
-    MatDialogModule
+    MatDialogModule,
+    ValorMonetarioDirective
 ],
   templateUrl: './venda-confirmacao-dialog.html',
   styleUrl: './vendas.css',

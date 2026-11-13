@@ -37,11 +37,11 @@
     </mat-form-field>
     <mat-form-field>
         <mat-label>Preço de custo (R$)</mat-label>
-        <input matInput [(ngModel)]="dados.preco_custo" name="preco_custo" type="number" min="0" step="0.01">
+        <input matInput appValorMonetario [(ngModel)]="dados.preco_custo" name="preco_custo" type="text">
     </mat-form-field>
     <mat-form-field>
         <mat-label>Preço (R$)</mat-label>
-        <input matInput [(ngModel)]="dados.preco" name="preco" type="number" min="0.01" step="0.01">
+        <input matInput appValorMonetario [(ngModel)]="dados.preco" name="preco" type="text">
     </mat-form-field>
     <mat-form-field>
         <mat-label>Estoque</mat-label>

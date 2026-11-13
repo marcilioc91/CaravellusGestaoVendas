@@ -23,6 +23,7 @@ import { PeriodoDialog } from '../../shared/periodo-dialog/periodo-dialog';
 import { abrirUltimoPdf, imprimirPagina, normalizarTexto, salvarPdf } from '../../utils/utils';
 import { AuthService } from '../../services/auth.service';
 import { ConfirmDialog } from '../clientes/clientes';
+import { ValorMonetarioDirective } from '../../shared/valor-monetario/valor-monetario.directive';
 
 interface GrupoCliente {
   clienteId: number;
@@ -38,7 +39,7 @@ interface GrupoCliente {
 @Component({
   selector: 'app-pagamento-total-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatButtonModule, ValorMonetarioDirective],
   templateUrl: './pagamento-total-dialog.html',
 })
 export class PagamentoTotalDialog {

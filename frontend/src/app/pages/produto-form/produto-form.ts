@@ -17,6 +17,7 @@ import { CategoriaService } from '../../services/categoria.service';
 import { ProdutoService } from '../../services/produto.service';
 import { agruparPorCategoria, GrupoCategoria, reduzirImagem, secoesDoFiltro } from '../../utils/utils';
 import { ConfirmDialog } from '../clientes/clientes';
+import { ValorMonetarioDirective } from '../../shared/valor-monetario/valor-monetario.directive';
 
 /** imagem: undefined = não mexeu, null = remover, Blob = nova imagem */
 interface ResultadoFormulario {
@@ -28,7 +29,7 @@ interface ResultadoFormulario {
 @Component({
   selector: 'app-produto-form-dialog',
   standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, ValorMonetarioDirective],
   templateUrl: './produto-form-dialog.html',
   styleUrl: './produto-form.css',
 })
