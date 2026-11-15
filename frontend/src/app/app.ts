@@ -34,6 +34,22 @@ interface TelaComEsc {
 /** Telas que não têm "voltar": o Esc não faz nada nelas */
 const TELAS_SEM_VOLTAR = ['/', '/home', '/ativacao'];
 
+/**
+ * O Esc já foi usado por algum componente (fechou lista, calendário, menu...)?
+ * Exceção: o campo com mat-autocomplete (ex.: Cliente em Nova Venda) chama preventDefault em
+ * TODO Esc, mesmo com a lista fechada, e o Esc nunca voltaria com o foco nele. Com a lista
+ * aberta, o Material fecha a lista e interrompe o evento antes de chegar aqui; o aria-expanded
+ * é só uma garantia extra.
+ */
+function escJaUsado(event: Event): boolean {
+  if (!event.defaultPrevented) return false;
+  const alvo = event.target as HTMLElement | null;
+  if (alvo?.getAttribute('aria-autocomplete') === 'list') {
+    return alvo.getAttribute('aria-expanded') === 'true';
+  }
+  return true;
+}
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, Logo, AtualizacaoProgresso],
@@ -104,7 +120,7 @@ export class App {
    */
   @HostListener('document:keydown.escape', ['$event'])
   aoTeclarEsc(event: Event) {
-    if (event.defaultPrevented || this.iniciando() || this.dialog.openDialogs.length > 0) return;
+    if (escJaUsado(event) || this.iniciando() || this.dialog.openDialogs.length > 0) return;
 
     const url = this.router.url.split(/[?#]/)[0];
     if (TELAS_SEM_VOLTAR.includes(url)) return;

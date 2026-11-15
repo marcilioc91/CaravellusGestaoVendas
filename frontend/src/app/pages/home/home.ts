@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { TemaToggle } from '../../shared/tema-toggle/tema-toggle';
 import { RodapeSistema } from '../../shared/rodape-sistema/rodape-sistema';
 import { Logo } from '../../shared/logo/logo';
+import { ehAtalhoAlt } from '../../shared/atalho-teclado';
 
 interface Operacao {
   icone: string;
@@ -13,6 +15,8 @@ interface Operacao {
   descricao: string;
   rota: string;
   somenteAdmin?: boolean;
+  /** Letra do atalho Alt+letra nesta tela */
+  atalho?: string;
 }
 
 interface Secao {
@@ -22,9 +26,11 @@ interface Secao {
 
 const NOVA_VENDA: Operacao = {
   icone: 'point_of_sale', titulo: 'Nova Venda', descricao: 'Registrar uma venda para um cliente', rota: '/vendas',
+  atalho: 'N',
 };
 const HISTORICO: Operacao = {
   icone: 'receipt_long', titulo: 'Histórico de Vendas', descricao: 'Pagamentos, pendências e pedidos', rota: '/historico-vendas',
+  atalho: 'H',
 };
 const CLIENTES: Operacao = {
   icone: 'person_add', titulo: 'Clientes', descricao: 'Gerenciar clientes e usuários', rota: '/clientes',
@@ -81,7 +87,7 @@ export class Home {
   /** Animação de entrada: só logo após o login (não ao voltar de outra tela) */
   readonly entrada: boolean;
 
-  constructor(private router: Router, private auth: AuthService) {
+  constructor(private router: Router, private auth: AuthService, private dialog: MatDialog) {
     const usuario = this.auth.getUsuarioLogado();
     this.nomeUsuario = usuario?.pessoa?.nome ?? usuario?.usuarioLogin ?? '';
     this.primeiroNome = this.formatarPrimeiroNome(this.nomeUsuario);
@@ -100,6 +106,21 @@ export class Home {
 
   ir(operacao: Operacao) {
     this.router.navigate([operacao.rota]);
+  }
+
+  /** Dica do botão: "Alt+N" quando a operação tem atalho */
+  dicaAtalho(operacao: Operacao): string {
+    return operacao.atalho ? 'Alt+' + operacao.atalho : '';
+  }
+
+  /** Atalhos da tela: Alt+N = Nova Venda, Alt+H = Histórico de Vendas */
+  @HostListener('document:keydown', ['$event'])
+  aoTeclar(event: KeyboardEvent) {
+    if (this.dialog.openDialogs.length > 0) return;
+    const operacao = this.destaques.find(o => o.atalho && ehAtalhoAlt(event, o.atalho));
+    if (!operacao) return;
+    event.preventDefault();
+    this.ir(operacao);
   }
 
   logout() {

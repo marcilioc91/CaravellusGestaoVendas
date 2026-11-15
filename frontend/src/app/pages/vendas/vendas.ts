@@ -1,10 +1,10 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule, MatIcon } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
@@ -20,6 +20,15 @@ import { AuthService } from '../../services/auth.service';
 import { formatarTelefone, normalizarTexto, agruparPorCategoria, GrupoCategoria, secoesDoFiltro } from '../../utils/utils';
 import { Footer } from '../../footer/footer';
 import { ValorMonetarioDirective } from '../../shared/valor-monetario/valor-monetario.directive';
+import { ehAtalhoAlt } from '../../shared/atalho-teclado';
+import { ConfirmDialog } from '../clientes/clientes';
+
+/** Foca e abre a lista de um mat-select (atalhos de teclado) */
+function abrirLista(select: MatSelect | undefined) {
+  if (!select || select.disabled) return;
+  select.focus();
+  select.open();
+}
 
 interface ItemCarrinho {
   produto: Produto;
@@ -55,6 +64,7 @@ export class VendaConfirmacaoDialog implements OnInit {
   colunas = ['produto', 'quantidade', 'subtotal', 'acoes'];
   formaPagamento = '';
   valorPago: number;
+  @ViewChild('selectFormaPagamento') selectFormaPagamento?: MatSelect;
 
   formas = [
     { valor: 'DINHEIRO', label: 'Dinheiro' },
@@ -105,6 +115,14 @@ export class VendaConfirmacaoDialog implements OnInit {
   onQuantidadeChange() {
     this.atualizarValores();
   }
+
+  /** Atalho do carrinho: Alt+F = Forma de pagamento */
+  @HostListener('document:keydown', ['$event'])
+  aoTeclar(event: KeyboardEvent) {
+    if (!ehAtalhoAlt(event, 'F')) return;
+    event.preventDefault();
+    abrirLista(this.selectFormaPagamento);
+  }
 }
 
 // ── Página de vendas ───────────────────────────────────────────────────────────
@@ -138,6 +156,7 @@ export class Vendas implements OnInit, AfterViewInit {
   clienteSelecionado: Cliente | null = null;
   clienteSearchText = '';
   @ViewChild('campoCliente') campoCliente?: ElementRef<HTMLInputElement>;
+  @ViewChild('selectCategoria') selectCategoria?: MatSelect;
   carregando = true;
 
   colunasCarrinho = ['produto', 'preco', 'quantidade', 'subtotal', 'acoes'];
@@ -149,7 +168,8 @@ export class Vendas implements OnInit, AfterViewInit {
     private auth: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -169,6 +189,22 @@ export class Vendas implements OnInit, AfterViewInit {
 
   private focarCliente() {
     setTimeout(() => this.campoCliente?.nativeElement.focus());
+  }
+
+  /**
+   * Atalhos da tela: Alt+C = Categoria, Alt+V = Ver carrinho.
+   * Com um diálogo aberto (ex.: o carrinho) não valem; o carrinho tem os atalhos dele.
+   */
+  @HostListener('document:keydown', ['$event'])
+  aoTeclar(event: KeyboardEvent) {
+    if (this.dialog.openDialogs.length > 0) return;
+    if (ehAtalhoAlt(event, 'C')) {
+      event.preventDefault();
+      abrirLista(this.selectCategoria);
+    } else if (ehAtalhoAlt(event, 'V')) {
+      event.preventDefault();
+      this.abrirCarrinho();
+    }
   }
 
   /** "Todas": uma seção por categoria; categoria escolhida no filtro: só a seção dela */
@@ -293,7 +329,10 @@ export class Vendas implements OnInit, AfterViewInit {
 
   /** Atalho Esc (App): não sai da tela com itens no carrinho, para não perder a venda */
   podeVoltarComEsc(): boolean {
-    return this.carrinho.length === 0;
+    if (this.carrinho.length === 0)
+      return true;
+    this.voltar();
+    return false;
   }
 
   quantidadeTotalNoCarrinho(): number {
@@ -304,5 +343,24 @@ export class Vendas implements OnInit, AfterViewInit {
     const itemNoCarrinho = this.carrinho.find(i => i.produto.id === produto.id);
     const quantidadeNoCarrinho = itemNoCarrinho ? itemNoCarrinho.quantidade : 0;
     return produto.estoque - quantidadeNoCarrinho;
+  }
+
+  voltar() {
+    if (this.carrinho.length === 0) {
+      this.router.navigate(['/home']);
+      return;
+    }
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '420px',
+      data: {
+        titulo: 'Sair sem finalizar?',
+        mensagem: 'Existem produtos no carrinho. Tem certeza que deseja <strong>sair sem finalizar a venda?</strong>',
+      }
+    });
+    ref.afterClosed().subscribe(sair => {
+      if (sair) {
+        this.router.navigate(['/home']);
+      }
+    });
   }
 }

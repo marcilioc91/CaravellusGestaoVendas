@@ -2,7 +2,7 @@
 
   <div class="vendas-header">
     <h2>Nova Venda</h2>
-    <button mat-stroked-button class="btn-voltar" routerLink="/home">
+    <button mat-stroked-button class="btn-voltar" (click)="voltar()">
       <mat-icon>arrow_back</mat-icon>
       Voltar
     </button>
@@ -30,9 +30,9 @@
       } @else if (produtos.length === 0) {
       <p class="sem-dados">Nenhum produto cadastrado.</p>
       } @else {
-      <mat-form-field class="filtro-categoria">
+      <mat-form-field class="filtro-categoria" title="Alt+C">
         <mat-label>Categoria</mat-label>
-        <mat-select [(ngModel)]="grupoSelecionado">
+        <mat-select #selectCategoria [(ngModel)]="grupoSelecionado">
           @for (g of grupos; track g.nome) {
           <mat-option [value]="g">{{ g.nome }} ({{ g.produtos.length }})</mat-option>
           }

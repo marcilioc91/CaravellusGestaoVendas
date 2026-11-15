@@ -43,9 +43,9 @@
         Total: R$ {{ data.total | number:'1.2-2' }}
     </p>
 
-    <mat-form-field style="width:100%">
+    <mat-form-field style="width:100%" title="Alt+F">
         <mat-label>Forma de pagamento</mat-label>
-        <mat-select [(ngModel)]="formaPagamento" name="forma">
+        <mat-select #selectFormaPagamento [(ngModel)]="formaPagamento" name="forma">
             @for (f of formas; track f.valor) {
             <mat-option [value]="f.valor">{{ f.label }}</mat-option>
             }

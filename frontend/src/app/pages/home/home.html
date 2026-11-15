@@ -15,7 +15,7 @@
     @for (secao of secoes; track secao.titulo) {
     <div class="home-menu-secao">{{ secao.titulo }}</div>
     @for (op of secao.operacoes; track op.rota) {
-    <button type="button" class="home-link" [title]="op.descricao" (click)="ir(op)">
+    <button type="button" class="home-link" [title]="op.descricao + (op.atalho ? ' (' + dicaAtalho(op) + ')' : '')" (click)="ir(op)">
       <mat-icon>{{ op.icone }}</mat-icon>
       {{ op.titulo }}
     </button>
@@ -50,7 +50,7 @@
 
     <div class="home-destaques">
       @for (op of destaques; track op.rota; let primeiro = $first, i = $index) {
-      <button type="button" class="home-destaque home-anima" [class.principal]="primeiro" [style.--ordem]="2 + i" (click)="ir(op)">
+      <button type="button" class="home-destaque home-anima" [class.principal]="primeiro" [style.--ordem]="2 + i" [title]="dicaAtalho(op)" (click)="ir(op)">
         <mat-icon>{{ op.icone }}</mat-icon>
         <span>
           <span class="home-destaque-titulo">{{ op.titulo }}</span>

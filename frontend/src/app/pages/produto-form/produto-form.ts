@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,7 @@ import { ProdutoService } from '../../services/produto.service';
 import { agruparPorCategoria, GrupoCategoria, reduzirImagem, secoesDoFiltro } from '../../utils/utils';
 import { ConfirmDialog } from '../clientes/clientes';
 import { ValorMonetarioDirective } from '../../shared/valor-monetario/valor-monetario.directive';
+import { ehAtalhoAlt } from '../../shared/atalho-teclado';
 
 /** imagem: undefined = não mexeu, null = remover, Blob = nova imagem */
 interface ResultadoFormulario {
@@ -137,6 +138,14 @@ export class ProdutoForm implements OnInit {
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) { }
+
+  /** Atalho da tela: Alt+N = Novo Produto (não vale com um diálogo aberto) */
+  @HostListener('document:keydown', ['$event'])
+  aoTeclar(event: KeyboardEvent) {
+    if (this.dialog.openDialogs.length > 0 || !ehAtalhoAlt(event, 'N')) return;
+    event.preventDefault();
+    this.abrirFormulario();
+  }
 
   ngOnInit() {
     this.carregar();
